@@ -1,59 +1,31 @@
-import typing
 from datetime import datetime
+from typing import TYPE_CHECKING
 
-from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable
+from fastapi_users.db import SQLAlchemyBaseUserTableUUID
 from sqlalchemy import String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.sql import expression
 
 from src.database.db import Base
-from src.schemas.users import UserReadSchema
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from src.database.models import Cart, Favorite, Purchase
 
 
-class User(SQLAlchemyBaseUserTable[int], Base):
-    """Модель пользователя."""
-
+class User(SQLAlchemyBaseUserTableUUID, Base):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(
-        primary_key=True
-    )
-    first_name: Mapped[str | None] = mapped_column(
-        String(length=100)
-    )
-    last_name: Mapped[str | None] = mapped_column(
-        String(length=150)
-    )
-    email: Mapped[str] = mapped_column(
-        String(length=320), unique=True, index=True
-    )
-    phone: Mapped[str] = mapped_column(
-        String(length=100), unique=True, nullable=False
-    )
-    city: Mapped[str] = mapped_column(
-        String(length=100), nullable=False
-    )
-    hashed_password: Mapped[str] = mapped_column(
-        String(length=1024), nullable=False
-    )
-    is_active: Mapped[bool] = mapped_column(
-        server_default=expression.true()
-    )
-    is_superuser: Mapped[bool] = mapped_column(
-        server_default=expression.false()
-    )
-    is_verified: Mapped[bool] = mapped_column(
-        server_default=expression.false()
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        server_default=func.now()
-    )
+    # Обязательные поля уже есть в SQLAlchemyBaseUserTableUUID:
+    # id: UUID, email: str, hashed_password: str, is_active: bool, etc.
+
+    first_name: Mapped[str | None] = mapped_column(String(100))
+    last_name: Mapped[str | None] = mapped_column(String(150))
+    phone: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
+    city: Mapped[str] = mapped_column(String(100), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
-        server_default=func.now(), server_onupdate=func.now()
+        server_default=func.now(), onupdate=func.now()
     )
+
     cart: Mapped["Cart"] = relationship(
         "Cart", back_populates="user", cascade="all, delete-orphan"
     )
@@ -65,7 +37,8 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     )
 
     def __str__(self):
-        return f"Пользователь:id - {self.id}, phone - {self.phone}"
+        return f"Пользователь: {self.phone}"
 
     def to_read_model(self):
+        from src.schemas.users import UserReadSchema
         return UserReadSchema.model_validate(self)

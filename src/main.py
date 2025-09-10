@@ -3,8 +3,12 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from src.helpers.exceptions import HTTPUnauthorized, unauthorized_exception_handler, validation_exception_handler, \
+from src.helpers.exceptions import (
+    HTTPUnauthorized,
+    unauthorized_exception_handler,
+    validation_exception_handler,
     global_exception_handler
+)
 from src.middlewares import log_middleware
 from src.routers import router
 from src.logger import logger

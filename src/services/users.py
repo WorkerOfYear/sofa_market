@@ -1,6 +1,6 @@
 from src.uow.sqlalchemy import UnitOfWork
 from src.schemas.users import UserCreateSchema, UserReadSchema
-from src.auth import hash_password
+from src.auth.core import hash_password
 
 
 class UsersService:
@@ -13,7 +13,3 @@ class UsersService:
         del user_dict["password"]
         new_user = await self.uow.user_repo.add(user_dict)
         return new_user.to_read_model()
-
-    async def get_all_users(self) -> list[UserReadSchema]:
-        orm_users = await self.users_repo.find_all()
-        return

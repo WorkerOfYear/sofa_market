@@ -1,11 +1,9 @@
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends, Request
+from fastapi import Request
 from fastapi_users import BaseUserManager, UUIDIDMixin
-from fastapi_users.db import SQLAlchemyUserDatabase
 
-from src.auth.config import get_user_db
 from src.database.models.users import User
 from src.config import settings
 
@@ -27,6 +25,5 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):
     ):
         print(f"Запрос верификации для {user.email}. Токен: {token}")
 
-
-async def get_user_manager(user_db: SQLAlchemyUserDatabase = Depends(get_user_db)):
-    yield UserManager(user_db)
+    async def on_after_verify(self, user: User, request: Optional[Request] = None):
+        print(f"Пользователь {user.email} верифицирован.")

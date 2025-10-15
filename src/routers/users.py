@@ -6,7 +6,7 @@ from src.dependencies.users import users_service
 from src.schemas.users import UserCreateSchema, UserUpdateSchema, UserReadSchema
 from src.services.users import UsersService
 
-router = APIRouter(tags=["Users manage"])
+router = APIRouter(tags=["user"])
 
 
 @router.post("/", response_model=UserReadSchema)

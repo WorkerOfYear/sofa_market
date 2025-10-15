@@ -22,9 +22,9 @@ app.add_middleware(BaseHTTPMiddleware, dispatch=log_middleware)
 app.include_router(router)
 
 
-app.add_exception_handler(HTTPUnauthorized, unauthorized_exception_handler)
-app.add_exception_handler(RequestValidationError, validation_exception_handler)
-app.add_exception_handler(Exception, global_exception_handler)
+# app.add_exception_handler(HTTPUnauthorized, unauthorized_exception_handler)
+# app.add_exception_handler(RequestValidationError, validation_exception_handler)
+# app.add_exception_handler(Exception, global_exception_handler)
 
 
 if __name__ == "__main__":

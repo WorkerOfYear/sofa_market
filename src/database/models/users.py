@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from fastapi_users.db import SQLAlchemyBaseUserTableUUID
+from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTableUUID
 from sqlalchemy import String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -17,10 +17,10 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
     # Обязательные поля уже есть в SQLAlchemyBaseUserTableUUID:
     # id: UUID, email: str, hashed_password: str, is_active: bool, etc.
 
-    first_name: Mapped[str | None] = mapped_column(String(100))
-    last_name: Mapped[str | None] = mapped_column(String(150))
-    phone: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
-    city: Mapped[str] = mapped_column(String(100), nullable=False)
+    first_name: Mapped[str | None] = mapped_column(String(length=100))
+    last_name: Mapped[str | None] = mapped_column(String(length=150))
+    phone: Mapped[str] = mapped_column(String(length=20), unique=True, nullable=False)
+    city: Mapped[str] = mapped_column(String(length=100), nullable=False)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         server_default=func.now(), onupdate=func.now()

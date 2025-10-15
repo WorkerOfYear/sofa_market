@@ -18,9 +18,6 @@ class UsersRepository(SQLAlchemyRepository[User]):
         await self._session.flush()
         return user
 
-    async def get_by_username(self, username: str) -> User:
-
-
     async def get_by_email(self, email: str) -> User | None:
         stmt = select(self.model).where(self.model.email == email)
         result = await self._session.execute(stmt)

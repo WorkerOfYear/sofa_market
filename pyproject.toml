@@ -25,6 +25,7 @@ mypy = "^1.17.1"
 python-multipart = "^0.0.20"
 python-jose = {extras = ["cryptography"], version = "^3.5.0"}
 passlib = "^1.7.4"
+fastapi-users-db-sqlalchemy = "^7.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -197,6 +198,7 @@ extend-ignore = [
     "COM819",
     "ISC001",
     "ISC002",
+    "B008"
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]

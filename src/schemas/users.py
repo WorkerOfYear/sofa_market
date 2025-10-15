@@ -1,5 +1,7 @@
 from datetime import datetime
+from uuid import UUID
 
+from fastapi_users import schemas
 from pydantic import BaseModel, Field, field_validator, EmailStr
 
 
@@ -18,20 +20,27 @@ class UserBaseSchema(BaseModel):
         return v
 
 
-class UserReadSchema(UserBaseSchema):
-    id: int
-    is_active: bool
-    is_superuser: bool
-    is_verified: bool
-    created_at: datetime
-    updated_at: datetime
+# class UserReadSchema(UserBaseSchema):
+#     id: int
+#     is_active: bool
+#     is_superuser: bool
+#     is_verified: bool
+#     created_at: datetime
+#     updated_at: datetime
+#
+#     class Config:
+#         from_attributes = True
 
-    class Config:
-        from_attributes = True
+
+class UserReadSchema(schemas.BaseUser[UUID]):
+    pass
 
 
-class UserCreateSchema(UserBaseSchema):
-    password: str = Field(..., min_length=8, max_length=1024)
+class UserCreateSchema(schemas.BaseUserCreate):
+    first_name: str | None = Field(None, max_length=100)
+    last_name: str | None = Field(None, max_length=100)
+    phone: str = Field(..., max_length=20)
+    city: str = Field(..., max_length=100)
 
 
 class UserUpdateSchema(BaseModel):

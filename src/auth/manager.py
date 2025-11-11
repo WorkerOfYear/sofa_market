@@ -9,8 +9,8 @@ from src.config import settings
 
 
 class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):
-    reset_password_token_secret = settings.SECRET_KEY
-    verification_token_secret = settings.SECRET_KEY
+    reset_password_token_secret = settings.AUTH_SECRET_KEY
+    verification_token_secret = settings.AUTH_SECRET_KEY
 
     async def on_after_register(self, user: User, request: Optional[Request] = None):
         print(f"Пользователь {user.email} зарегистрирован.")

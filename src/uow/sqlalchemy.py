@@ -2,8 +2,6 @@ from contextlib import asynccontextmanager
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from src.database.models import User
-from src.repositories.base import AbstractRepository
 from src.repositories.users import UsersRepository
 from src.uow.base import AbstractUnitOfWork
 
@@ -12,8 +10,6 @@ class UnitOfWork(AbstractUnitOfWork):
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
         self.session_factory = session_factory
         self.session: AsyncSession | None = None
-
-        self.user: AbstractRepository[User]
 
     @asynccontextmanager
     async def __call__(self):

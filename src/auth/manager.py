@@ -1,29 +1,19 @@
-from typing import Optional
-from uuid import UUID
-
-from fastapi import Request
-from fastapi_users import BaseUserManager, UUIDIDMixin
+from passlib.context import CryptContext
 
 from src.database.models.users import User
-from src.config import settings
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):
-    reset_password_token_secret = settings.AUTH_SECRET_KEY
-    verification_token_secret = settings.AUTH_SECRET_KEY
+class AuthManager:
+    def hash_password(self, password: str) -> str:
+        return pwd_context.hash(password)
 
-    async def on_after_register(self, user: User, request: Optional[Request] = None):
-        print(f"Пользователь {user.email} зарегистрирован.")
+    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
+        return pwd_context.verify(plain_password, hashed_password)
 
-    async def on_after_forgot_password(
-        self, user: User, token: str, request: Optional[Request] = None
-    ):
-        print(f"Пользователь {user.email} запросил сброс пароля. Токен: {token}")
+    async def on_after_register(self, user: User):
+        print(f"Пользователь {user.email or user.phone} зарегистрирован.")
 
-    async def on_after_request_verify(
-        self, user: User, token: str, request: Optional[Request] = None
-    ):
-        print(f"Запрос верификации для {user.email}. Токен: {token}")
-
-    async def on_after_verify(self, user: User, request: Optional[Request] = None):
-        print(f"Пользователь {user.email} верифицирован.")
+    async def on_after_verify(self, user: User):
+        print(f"Пользователь {user.email or user.phone} верифицирован.")

@@ -19,14 +19,16 @@ class Category(Base):
         primary_key=True
     )
     name: Mapped[str] = mapped_column(
-        String(length=100)
+        String(length=256)
     )
     slug: Mapped[str] = mapped_column(
-        String(length=100)
+        String(length=256)
     )
     created_at: Mapped[date] = mapped_column(
         server_default=func.now()
     )
     products: Mapped[list["Product"]] = relationship(
-        "Product", back_populates="category"
+        "Product",
+        back_populates="category",
+        lazy="raise"
     )

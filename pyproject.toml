@@ -11,7 +11,6 @@ python = "^3.12"
 fastapi = "^0.115.6"
 sqlalchemy = "^2.0.36"
 pydantic-settings = "^2.7.0"
-fastapi-users = {extras = ["redis"], version = "^14.0.1"}
 asyncpg = "^0.30.0"
 alembic = "^1.14.1"
 uvicorn = {extras = ["standard"], version = "^0.34.0"}
@@ -19,17 +18,19 @@ gunicorn = "^23.0.0"
 httpx = "^0.28.1"
 pytest-asyncio = "^0.25.3"
 pytest = "^8.3.5"
-python-slugify = "^8.0.4"
-sqlalchemy2-stubs = "^0.0.2a38"
-mypy = "^1.17.1"
 python-multipart = "^0.0.20"
 python-jose = {extras = ["cryptography"], version = "^3.5.0"}
 passlib = "^1.7.4"
-fastapi-users-db-sqlalchemy = "^7.0.0"
+pydantic-extra-types = "^2.10.6"
+redis = {extras = ["asyncio"], version = "^7.1.0"}
+boto3 = "^1.42.9"
+email-validator = "^2.3.0"
+python-slugify = "^8.0.4"
 
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.11.0"
+sqlalchemy = {extras = ["mypy"], version = "^2.0.44"}
 
 [build-system]
 requires = ["poetry-core"]
@@ -233,3 +234,12 @@ ignore-variadic-names = true
 # Делаем единый стиль скобок в тестах
 fixture-parentheses = false
 mark-parentheses = false
+
+
+[tool.mypy]
+plugins = ["sqlalchemy.ext.mypy.plugin"]
+ignore_missing_imports = true
+strict_optional = true
+disallow_untyped_defs = true
+warn_unused_ignores = true
+warn_return_any = true

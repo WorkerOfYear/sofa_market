@@ -1,65 +1,22 @@
 from datetime import datetime
+from typing import Optional
 from uuid import UUID
 
-from fastapi_users import schemas
-from pydantic import BaseModel, Field, field_validator, EmailStr
+from pydantic import EmailStr, BaseModel
 
 
-class UserBaseSchema(BaseModel):
-    first_name: str | None = Field(None, max_length=100)
-    last_name: str | None = Field(None, max_length=150)
-    email: EmailStr = Field(..., max_length=100)
-    phone: str = Field(..., max_length=20)
-    city: str = Field(..., max_length=100)
+class BaseUser(BaseModel):
+    id: Optional[UUID] = None
+    email: Optional[EmailStr] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    city: Optional[str] = None
+    phone: str
+    is_active: Optional[bool] = None
+    is_verified: Optional[bool] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
-    @field_validator('phone')
-    def validate_phone(cls, v):
-        v = ''.join(filter(str.isdigit, v))
-        if len(v) < 10:
-            raise ValueError("Invalid phone number format")
-        return v
-
-
-# class UserReadSchema(UserBaseSchema):
-#     id: int
-#     is_active: bool
-#     is_superuser: bool
-#     is_verified: bool
-#     created_at: datetime
-#     updated_at: datetime
-#
-#     class Config:
-#         from_attributes = True
-
-
-class UserReadSchema(schemas.BaseUser[UUID]):
-    pass
-
-
-class UserCreateSchema(schemas.BaseUserCreate):
-    first_name: str | None = Field(None, max_length=100)
-    last_name: str | None = Field(None, max_length=100)
-    phone: str = Field(..., max_length=20)
-    city: str = Field(..., max_length=100)
-
-
-class UserUpdateSchema(BaseModel):
-    first_name: str | None = Field(None, max_length=100)
-    last_name: str | None = Field(None, max_length=150)
-    email: EmailStr | None = Field(None, max_length=100)
-    phone: str | None = Field(None, max_length=20)
-    city: str | None = Field(None, max_length=100)
-    password: str | None = Field(None, min_length=8, max_length=1024)
-    is_active: bool | None = None
-    is_superuser: bool | None = None
-    is_verified: bool | None = None
-
-
-class UserLoginSchema(BaseModel):
-    email: EmailStr
-    password: str
-
-
-class UserPasswordChangeSchema(BaseModel):
-    current_password: str
-    new_password: str = Field(..., min_length=8, max_length=1024)
+    model_config = {
+        "from_attributes": True
+    }

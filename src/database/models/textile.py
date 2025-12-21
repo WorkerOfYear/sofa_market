@@ -13,13 +13,13 @@ class Textile(Base):
         primary_key=True
     )
     producer: Mapped[str] = mapped_column(
-        String(length=100)
+        String(length=256)
     )
     color: Mapped[str] = mapped_column(
-        String(length=100)
+        String(length=256)
     )
     description: Mapped[str] = mapped_column(
-        String(length=400)
+        String(length=512)
     )
     is_available: Mapped[bool] = mapped_column(
         default=True

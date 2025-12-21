@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, Generic, Type
+from typing import TypeVar, Generic, Type, ClassVar
 from uuid import UUID
 
 from sqlalchemy import select, update, delete
@@ -27,7 +27,7 @@ class AbstractRepository(ABC, Generic[M]):
 
 
 class SQLAlchemyRepository(AbstractRepository[M]):
-    model: Type[M]
+    model: ClassVar[type[M]]
 
     def __init__(self, session: AsyncSession) -> None:
         self._session = session

@@ -18,7 +18,9 @@ class Favorite(Base):
         ForeignKey("users.id"), primary_key=True
     )
     user: Mapped["User"] = relationship(
-        back_populates="favorite", single_parent=True
+        back_populates="favorite",
+        single_parent=True,
+        lazy=""
     )
     favorites_products: Mapped[list["FavoriteProduct"]] = relationship(
         "FavoriteProduct", back_populates="favorite"

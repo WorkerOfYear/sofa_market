@@ -24,15 +24,17 @@ class Product(Base):
         primary_key=True
     )
     name: Mapped[str] = mapped_column(
-        String(length=100)
+        String(length=256)
     )
     slug: Mapped[str] = mapped_column(
-        String(length=100)
+        String(length=256)
     )
     description: Mapped[str] = mapped_column(
-        String(length=100)
+        String(length=256)
     )
+
     price: Mapped[int]
+
     category_id: Mapped[int] = mapped_column(
         ForeignKey("categories.id")
     )
@@ -43,22 +45,35 @@ class Product(Base):
         server_default=func.now(), server_onupdate=func.now()
     )
     category: Mapped["Category"] = relationship(
-        "Category", back_populates="products", single_parent=True
+        "Category",
+        back_populates="products",
+        single_parent=True,
+        lazy="raise"
     )
     images: Mapped[list["Image"]] = relationship(
-        "Image", back_populates="product"
+        "Image",
+        back_populates="product",
+        lazy="raise"
     )
     dimensions: Mapped[list["Dimension"]] = relationship(
-        "Dimension", back_populates="product"
+        "Dimension",
+        back_populates="product",
+        lazy="raise"
     )
     carts_products: Mapped[list["CartProduct"]] = relationship(
-        "CartProduct", back_populates="product", lazy="joined"
+        "CartProduct",
+        back_populates="product",
+        lazy="raise"
     )
     favorites_products: Mapped[list["FavoriteProduct"]] = relationship(
-        "FavoriteProduct", back_populates="product"
+        "FavoriteProduct",
+        back_populates="product",
+        lazy="raise"
     )
     purchases_products: Mapped[list["PurchaseProduct"]] = relationship(
-        "PurchaseProduct", back_populates="product"
+        "PurchaseProduct",
+        back_populates="product",
+        lazy="raise"
     )
 
     def __str__(self):
@@ -73,12 +88,17 @@ class Image(Base):
     id: Mapped[int] = mapped_column(
         primary_key=True
     )
+
     url: Mapped[str]
+
     product_id: Mapped[int] = mapped_column(
         ForeignKey("products.id")
     )
     product: Mapped["Product"] = relationship(
-        "Product", back_populates="images", single_parent=True
+        "Product",
+        back_populates="images",
+        single_parent=True,
+        lazy="raise"
     )
 
     def __str__(self):
@@ -106,7 +126,10 @@ class Dimension(Base):
         ForeignKey("products.id")
     )
     product: Mapped["Product"] = relationship(
-        "Product", back_populates="dimensions", single_parent=True
+        "Product",
+        back_populates="dimensions",
+        single_parent=True,
+        lazy="raise"
     )
 
     def __str__(self):

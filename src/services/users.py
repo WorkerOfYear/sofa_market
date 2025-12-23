@@ -6,5 +6,5 @@ class UsersService:
     def __init__(self, uow: UnitOfWork):
         self.uow = uow
 
-    async def get_users(self) -> list[User]:
+    async def get_all(self) -> list[User]:
         return await self.uow.user_repo.get_all()

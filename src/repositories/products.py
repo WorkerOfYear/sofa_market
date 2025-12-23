@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.models import Product
 
 from .base import SQLAlchemyRepository
+from ..schemas import ProductCreate
 
 
 class ProductsRepository(SQLAlchemyRepository[Product]):
@@ -22,3 +23,6 @@ class ProductsRepository(SQLAlchemyRepository[Product]):
         )
         result = await self._session.scalars(stmt)
         return result.all()
+
+    async def create(self, data: ProductCreate) -> Product:
+        db_obj = self.model(**data.model_dump())

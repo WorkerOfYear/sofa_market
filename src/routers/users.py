@@ -13,4 +13,4 @@ router = APIRouter(tags=["user"])
 async def get_users(
         user_service: Annotated[UsersService, Depends(users_service)],
 ):
-    return await user_service.get_users()
+    return await user_service.get_all()

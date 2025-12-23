@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 
 from src.database.db import Base
-from src.schemas.users import BaseUser
+from src.schemas.users import UserBase
 
 if TYPE_CHECKING:
     from src.database.models import Cart, Favorite, Purchase
@@ -72,5 +72,5 @@ class User(Base):
     def __str__(self):
         return f"Пользователь: {self.email}"
 
-    def to_base_scheme(self) -> BaseUser:
-        return BaseUser.model_validate(self)
+    def to_base_scheme(self) -> UserBase:
+        return UserBase.model_validate(self)

@@ -3,7 +3,7 @@ from typing import Sequence
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.schemas import BaseUser
+from src.schemas import UserBase
 from src.database.models import User
 
 from .base import SQLAlchemyRepository
@@ -15,7 +15,7 @@ class UsersRepository(SQLAlchemyRepository[User]):
     def __init__(self, session: AsyncSession) -> None:
         super().__init__(session)
 
-    async def create(self, data: BaseUser) -> User:
+    async def create(self, data: UserBase) -> User:
         user = User(**data.model_dump())
         self._session.add(user)
         await self._session.flush()

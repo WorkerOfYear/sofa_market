@@ -4,10 +4,8 @@ import string
 from redis.asyncio import Redis
 from fastapi import APIRouter, Depends, HTTPException, Response, Request
 
-from src.dependencies.auth import get_auth_service
-from src.dependencies.redis import get_redis_client
-from src.dependencies.sms import get_sms_client
-from src.schemas import PhoneNumberPayload, VerifyOTPayload, BaseUser
+from src.dependencies import get_auth_service, get_sms_client, get_redis_client
+from src.schemas import PhoneNumberPayload, VerifyOTPayload, UserBase
 from src.helpers.sms import SmsClient
 from src.services.auth import AuthService
 
@@ -66,7 +64,7 @@ async def logout(
     return {"message": "User logged out."}
 
 
-@router.post("/profile", response_model=BaseUser)
+@router.post("/profile", response_model=UserBase)
 async def profile(
         request: Request,
         auth_service: AuthService = Depends(get_auth_service),

@@ -4,6 +4,7 @@ from src.dependencies.uow import get_uow
 from src.uow.sqlalchemy import UnitOfWork
 from src.services.auth import AuthService
 from src.auth import RedisStrategy, CookieTransport
+from src.schemas import UserBase
 
 
 async def get_redis_strategy(request: Request) -> RedisStrategy:
@@ -23,3 +24,9 @@ async def get_auth_service(
         cookie_transport,
         redis_strategy,
     )
+
+async def get_current_user(
+        request: Request,
+        auth_service: AuthService = Depends(get_auth_service),
+) -> UserBase:
+    return await auth_service.get_current_user(request)

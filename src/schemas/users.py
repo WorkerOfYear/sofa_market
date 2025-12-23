@@ -2,10 +2,12 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import EmailStr, BaseModel
+from pydantic import EmailStr
+
+from .base import BaseSchema
 
 
-class BaseUser(BaseModel):
+class UserBase(BaseSchema):
     id: Optional[UUID] = None
     email: Optional[EmailStr] = None
     first_name: Optional[str] = None
@@ -16,7 +18,3 @@ class BaseUser(BaseModel):
     is_verified: Optional[bool] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-
-    model_config = {
-        "from_attributes": True
-    }

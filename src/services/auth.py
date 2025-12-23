@@ -2,7 +2,7 @@ from fastapi import HTTPException, status, Response, Request
 
 from src.uow.sqlalchemy import UnitOfWork
 from src.auth import CookieTransport, RedisStrategy
-from src.schemas import BaseUser
+from src.schemas import UserBase
 
 
 class AuthService:
@@ -16,7 +16,7 @@ class AuthService:
         self.cookie_transport = cookie_transport
         self.redis_strategy = redis_strategy
 
-    async def get_current_user(self, request: Request) -> BaseUser:
+    async def get_current_user(self, request: Request) -> UserBase:
         token = self.cookie_transport.get_token_from_request(request)
 
         if not token:
@@ -44,12 +44,12 @@ class AuthService:
 
         return user
 
-    async def login(self, response: Response, phone: str) -> BaseUser:
+    async def login(self, response: Response, phone: str) -> UserBase:
         user = await self.uow.user_repo.get_by_phone(phone)
 
         if not user:
             await self.uow.user_repo.create(
-                BaseUser(phone=phone),
+                UserBase(phone=phone),
             )
 
         elif not user.is_active:

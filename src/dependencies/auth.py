@@ -1,6 +1,6 @@
 from fastapi import Depends, Request
 
-from src.dependencies.uow import get_uow
+from src.dependencies import get_uow
 from src.uow.sqlalchemy import UnitOfWork
 from src.services.auth import AuthService
 from src.auth import RedisStrategy, CookieTransport

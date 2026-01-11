@@ -4,6 +4,7 @@ import uvicorn
 import redis.asyncio as redis
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from src.helpers.storage import LocalStorageClient
 from src.middlewares import log_middleware
 from src.auth import CookieTransport, RedisStrategy
 from src.routers import router
@@ -31,6 +32,7 @@ async def lifespan(app: CustomApp):
     app.state.sms_client = MobizonClient(
         key=settings.MOBIZON_API_KEY
     )
+    app.state.storage_client = LocalStorageClient("./storage")
 
     yield
 

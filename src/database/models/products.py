@@ -1,10 +1,11 @@
 import typing
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, String, func
+from sqlalchemy import ForeignKey, String, func, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database.db import Base
+from src.helpers.enums import ImageStorageTypeEnum
 
 if typing.TYPE_CHECKING:
     from src.database.models import (
@@ -94,6 +95,12 @@ class Image(Base):
     product_id: Mapped[int] = mapped_column(
         ForeignKey("products.id")
     )
+    storage_type: Mapped[ImageStorageTypeEnum] = mapped_column(
+        Enum(ImageStorageTypeEnum, native_enum=False),
+        default=ImageStorageTypeEnum.LOCAL,
+        nullable=False,
+    )
+
     product: Mapped["Product"] = relationship(
         "Product",
         back_populates="images",

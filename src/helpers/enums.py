@@ -17,3 +17,9 @@ class BaseEnum(Enum, metaclass=MetaEnum):
 class PurchaseStatusEnum(BaseEnum):
     CREATED = "CREATED"
     PROCESSED = "PROCESSED"
+
+
+class ImageStorageTypeEnum(BaseEnum):
+    LOCAL = "LOCAL"
+    S3 = "S3"
+    YANDEX = "YANDEX"

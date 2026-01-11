@@ -3,6 +3,7 @@ from datetime import datetime
 from pydantic import Field, field_validator
 from slugify import slugify
 
+from src.helpers.enums import ImageStorageTypeEnum
 from .base import BaseSchema
 
 
@@ -16,6 +17,18 @@ class DimensionBase(BaseSchema):
     height: str
     width: str
     depth: str
+
+
+class DimensionCreate(BaseSchema):
+    product_id: int
+    height: str
+    width: str
+    depth: str
+
+
+class ImageCreate(BaseSchema):
+    product_id: int
+    storage_type: ImageStorageTypeEnum
 
 
 class ProductCreate(BaseSchema):

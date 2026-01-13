@@ -41,14 +41,31 @@ class ProductsRepository(SQLAlchemyRepository[Product]):
         await self._session.refresh(product)
         return product
 
+    async def delete_product(self, product_id: int) -> None:
+        return await self._delete(product_id)
+
     async def create_dimension(self, data: schemas.DimensionCreate) -> Dimension:
         dimension = Dimension(**data.model_dump())
         self._session.add(dimension)
         await self._session.flush()
         return dimension
 
+    async def delete_dimension(self, dimension_id: int) -> None:
+        stmt = select(Dimension).filter(Dimension.id == dimension_id)
+        result = await self._session.scalars(stmt)
+        dimension = result.first()
+        if dimension:
+            await self._session.delete(dimension)
+
     async def create_image(self, data: schemas.ImageCreate) -> Image:
         image = Image(**data.model_dump())
         self._session.add(image)
         await self._session.flush()
         return image
+
+    async def delete_image(self, image_id: int) -> None:
+        stmt = select(Image).filter(Image.id == image_id)
+        result = await self._session.scalars(stmt)
+        image = result.first()
+        if image:
+            await self._session.delete(image)

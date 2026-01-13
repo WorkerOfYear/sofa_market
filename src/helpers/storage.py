@@ -3,10 +3,16 @@ from abc import ABC, abstractmethod
 import aiofiles
 from pathlib import Path
 
+from src.database.models import Product
+
 
 class StorageClient(ABC):
     @abstractmethod
     async def upload_file(self, file_bytes: bytes, destination: str | Path) -> None:
+        pass
+
+    @abstractmethod
+    async def get_product_image_path(self, product_id: int, filename: str) -> Path:
         pass
 
 

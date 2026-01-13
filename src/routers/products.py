@@ -31,19 +31,28 @@ async def create_product(
     return await product_service.create_product(data)
 
 
+@router.delete("/{product_id}")
+async def delete_dimension(
+        product_id: int,
+        product_service: ProductsService = Depends(get_products_service),
+):
+    return await product_service.delete_product(product_id)
+
+
 @router.post("/dimension", response_model=schemas.DimensionBase)
-async def create_dimension():
-    return
-
-
-@router.patch("/dimension/{dimension_id}", response_model=schemas.DimensionBase)
-async def update_dimension(dimension_id: int):
-    return
+async def create_dimension(
+        data: schemas.DimensionCreate,
+        product_service: ProductsService = Depends(get_products_service),
+):
+    return await product_service.create_dimension(data)
 
 
 @router.delete("/dimension/{dimension_id}")
-async def delete_dimension(dimension_id: int):
-    return
+async def delete_dimension(
+        dimension_id: int,
+        product_service: ProductsService = Depends(get_products_service),
+):
+    return await product_service.delete_dimension(dimension_id)
 
 
 @router.get("/image/{image_id}", response_model=schemas.ImageBase)
@@ -53,10 +62,11 @@ async def get_image(image_id: int):
 
 @router.post("/image", response_model=schemas.ImageBase)
 async def create_image(
+
         product_service: ProductsService = Depends(get_products_service),
-        sotrage_client: StorageClient = Depends(get_storage_client),
+        storage_client: StorageClient = Depends(get_storage_client),
 ):
-    ...
+    storage_client.get_product_image_path()
 
 
 @router.delete("/image/{image_id}")

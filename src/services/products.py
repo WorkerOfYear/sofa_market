@@ -21,8 +21,17 @@ class ProductsService:
     async def create_product(self, data: schemas.ProductCreate) -> Product:
         return await self.uow.product_repo.create_product(data)
 
+    async def delete_product(self, product_id: int) -> None:
+        return await self.uow.product_repo.delete_product(product_id)
+
     async def create_dimension(self, data: schemas.DimensionCreate) -> Dimension:
         return await self.uow.product_repo.create_dimension(data)
 
+    async def delete_dimension(self, dimension_id: int) -> None:
+        return await self.uow.product_repo.delete_dimension(dimension_id)
+
     async def create_image(self, data: schemas.ImageCreate) -> Image:
         return await self.uow.product_repo.create_image(data)
+
+    async def delete_image(self, image_id: int) -> None:
+        return await self.uow.product_repo.delete_image(image_id)

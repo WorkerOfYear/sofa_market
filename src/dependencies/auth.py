@@ -1,10 +1,11 @@
 from fastapi import Depends, Request
 
-from src.dependencies import get_uow
 from src.uow.sqlalchemy import UnitOfWork
 from src.services.auth import AuthService
 from src.auth import AuthManager, RedisStrategy, CookieTransport
 from src.schemas import UserBase
+
+from .uow import get_uow
 
 
 async def get_redis_strategy(request: Request) -> RedisStrategy:

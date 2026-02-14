@@ -65,7 +65,7 @@ async def register(
     payload: EmailRegisterPayload,
     auth_service: AuthService = Depends(get_auth_service),
 ):
-    return await auth_service.register_email(payload.email, payload.password)
+    return await auth_service.register_email(str(payload.email), payload.password)
 
 
 @router.post("/login", response_model=UserBase)
@@ -75,7 +75,7 @@ async def login(
     auth_service: AuthService = Depends(get_auth_service),
 ):
     return await auth_service.login_email(
-        response, payload.email, payload.password
+        response, str(payload.email), payload.password
     )
 
 

@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import aiofiles
 from pathlib import Path
 
-from src.database.models import Product
+from src.helpers.enums import StorageDirectory
 
 
 class StorageClient(ABC):
@@ -25,9 +25,11 @@ class LocalStorageClient(StorageClient):
         async with aiofiles.open(full_path, mode='wb') as f:
             await f.write(file_bytes)
 
-    async def read_file(self, file_path: str | Path) -> bytes:
-        async with aiofiles.open(self.base / file_path, mode='rb') as f:
+    async def read_file(self, file_path: str | Path, directory: StorageDirectory) -> bytes:
+        full_path = self.base / directory.value / file_path
+        async with aiofiles.open(full_path, mode='rb') as f:
             return await f.read()
 
-    async def delete_file(self, file_path: str | Path) -> None:
-        Path(file_path).unlink()
+    async def delete_file(self, file_path: str | Path, directory: StorageDirectory) -> None:
+        full_path = self.base / directory.value / file_path
+        Path(full_path).unlink()

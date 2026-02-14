@@ -15,7 +15,7 @@ class ProductsService:
     async def get_product(self, product_id: int) -> Product:
         product = await self.uow.product_repo.get_product(product_id)
         if not product:
-            raise HTTPException(status_code=404)
+            raise HTTPException(status_code=404, detail="Product does not exist")
         return product
 
     async def is_product_exist(self, product_id: int) -> bool:
@@ -24,12 +24,20 @@ class ProductsService:
         return False
 
     async def create_product(self, data: schemas.ProductCreate) -> Product:
+        category = await self.uow.category_repo.get_by_id(data.category_id)
+        if category is None:
+            raise HTTPException(status_code=404, detail="Category not found")
+
         return await self.uow.product_repo.create_product(data)
 
     async def delete_product(self, product_id: int) -> None:
         return await self.uow.product_repo.delete_product(product_id)
 
     async def create_dimension(self, data: schemas.DimensionCreate) -> Dimension:
+        product = await self.uow.product_repo.get_product(data.product_id)
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+
         return await self.uow.product_repo.create_dimension(data)
 
     async def delete_dimension(self, dimension_id: int) -> None:

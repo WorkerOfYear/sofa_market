@@ -23,3 +23,8 @@ class CategoriesRepository(SQLAlchemyRepository[Category]):
         stmt = select(self.model).where(self.model.slug == slug)
         result = await self._session.scalars(stmt)
         return result.first()
+
+    async def get_by_id(self, id_: int) -> Category | None:
+        stmt = select(self.model).where(self.model.id == id_)
+        result = await self._session.scalars(stmt)
+        return result.first()

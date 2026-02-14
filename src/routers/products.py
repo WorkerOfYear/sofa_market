@@ -8,6 +8,7 @@ from src.helpers.enums import ImageStorageTypeEnum
 from src.services import ProductsService
 from src.dependencies import get_current_user, get_products_service, get_storage_client
 from src.helpers.storage import LocalStorageClient
+from src.helpers.enums import StorageDirectory
 
 router = APIRouter(tags=["products"], dependencies=[Depends(get_current_user)])
 
@@ -66,7 +67,10 @@ async def get_image(
         storage_client: LocalStorageClient = Depends(get_storage_client),
 ):
     db_image = await product_service.get_image(image_id)
-    image = await storage_client.read_file(str(db_image.url))
+    if db_image is None:
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    image = await storage_client.read_file(str(db_image.url), StorageDirectory.PRODUCTS)
     if image is None:
         raise HTTPException(status_code=404, detail="Image not found")
     return image
@@ -81,22 +85,20 @@ async def create_image(
         storage_client: LocalStorageClient = Depends(get_storage_client),
 ):
     product = await product_service.get_product(product_id)
-    if not product:
-        raise HTTPException(status_code=404, detail="Product does not exist")
 
     if storage_type == ImageStorageTypeEnum.LOCAL:
         filename = f"image-{len(product.images) + 1}.jpg"
         file_path = Path(storage_client.products_dir) / filename
         await storage_client.upload_file(file_bytes=image, destination=file_path)
-        url = file_path
     else:
         raise HTTPException(status_code=404, detail="Storage type not supported")
 
-    await product_service.create_image(schemas.ImageCreate(
+    image_db = await product_service.create_image(schemas.ImageCreate(
         product_id=product_id,
         storage_type=ImageStorageTypeEnum.LOCAL,
-        url=str(url)
+        url=str(filename)
     ))
+    return image_db
 
 
 @router.delete("/image/{image_id}")
@@ -106,5 +108,8 @@ async def delete_image(
         storage_client: LocalStorageClient = Depends(get_storage_client),
 ):
     db_image = await product_service.get_image(image_id)
-    await storage_client.delete_file(str(db_image.url))
+    if db_image is None:
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    await storage_client.delete_file(str(db_image.url), StorageDirectory.PRODUCTS)
     await product_service.delete_image(image_id)

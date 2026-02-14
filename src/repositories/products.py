@@ -38,7 +38,16 @@ class ProductsRepository(SQLAlchemyRepository[Product]):
         product = self.model(**data.model_dump())
         self._session.add(product)
         await self._session.flush()
-        await self._session.refresh(product)
+
+        result = await self._session.execute(
+            select(self.model)
+            .options(
+                selectinload(self.model.images),
+                selectinload(self.model.dimensions),
+            )
+            .where(self.model.id == product.id)
+        )
+        product = result.scalar_one()
         return product
 
     async def delete_product(self, product_id: int) -> None:

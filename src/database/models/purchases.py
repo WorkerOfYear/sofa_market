@@ -36,10 +36,15 @@ class Purchase(Base):
     )
 
     user: Mapped["User"] = relationship(
-        "User", back_populates="purchases", single_parent=True
+        "User",
+        back_populates="purchases",
+        single_parent=True,
+        lazy="raise"
     )
     purchases_products: Mapped[list["PurchaseProduct"]] = relationship(
-        "PurchaseProduct", back_populates="purchase"
+        "PurchaseProduct",
+        back_populates="purchase",
+        lazy="raise"
     )
 
 
@@ -60,8 +65,12 @@ class PurchaseProduct(Base):
     quantity: Mapped[int]
 
     purchase: Mapped["Purchase"] = relationship(
-        "Purchase", back_populates="purchases_products", single_parent=True
+        "Purchase",
+        back_populates="purchases_products",
+        single_parent=True
     )
     product: Mapped["Product"] = relationship(
-        "Product", back_populates="purchases_products", single_parent=True
+        "Product",
+        back_populates="purchases_products",
+        single_parent=True
     )

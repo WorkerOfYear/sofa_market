@@ -1,6 +1,6 @@
 from fastapi import Depends
 
-from src.dependencies import get_uow, get_storage_client
+from src.dependencies import get_storage_client
 from src.uow.sqlalchemy import UnitOfWork
 from src.helpers.storage import StorageClient
 from src.services import (
@@ -8,6 +8,8 @@ from src.services import (
     ProductsService,
     CatalogService,
 )
+
+from .uow import get_uow
 
 
 async def get_images_service(

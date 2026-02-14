@@ -23,3 +23,7 @@ class ImageStorageTypeEnum(BaseEnum):
     LOCAL = "LOCAL"
     S3 = "S3"
     YANDEX = "YANDEX"
+
+
+class StorageDirectory(BaseEnum):
+    PRODUCTS = "products"

@@ -57,19 +57,19 @@ class User(Base):
         "Cart",
         back_populates="user",
         cascade="all, delete-orphan",
-        lazy="raise_on_sql"
+        lazy="raise"
     )
     favorite: Mapped["Favorite"] = relationship(
         "Favorite",
         back_populates="user",
         cascade="all, delete-orphan",
-        lazy="raise_on_sql"
+        lazy="raise"
     )
     purchases: Mapped[list["Purchase"]] = relationship(
         "Purchase",
         back_populates="user",
         cascade="all, delete-orphan",
-        lazy="raise_on_sql"
+        lazy="raise"
     )
 
     def __str__(self):

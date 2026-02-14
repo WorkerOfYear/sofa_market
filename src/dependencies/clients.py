@@ -14,4 +14,4 @@ async def get_redis_client(request: Request) -> redis.Redis:
 
 
 async def get_storage_client(request: Request) -> StorageClient:
-    return request.app.state.storage
+    return request.app.state.storage_client

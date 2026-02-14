@@ -22,6 +22,9 @@ class User(Base):
     email: Mapped[str | None] = mapped_column(
         String(length=320), nullable=True, index=True
     )
+    hashed_password: Mapped[str | None] = mapped_column(
+        String(length=128), nullable=True
+    )
     is_active: Mapped[bool] = mapped_column(
         Boolean, default=True, nullable=False
     )
@@ -37,8 +40,8 @@ class User(Base):
     last_name: Mapped[str | None] = mapped_column(
         String(length=256), nullable=True
     )
-    phone: Mapped[str] = mapped_column(
-        String(length=20), unique=True, index=True
+    phone: Mapped[str | None] = mapped_column(
+        String(length=20), unique=True, index=True, nullable=True
     )
     city: Mapped[str | None] = mapped_column(
         String(length=128), nullable=True

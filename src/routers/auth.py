@@ -5,7 +5,13 @@ from redis.asyncio import Redis
 from fastapi import APIRouter, Depends, HTTPException, Response, Request
 
 from src.dependencies import get_auth_service, get_sms_client, get_redis_client
-from src.schemas import PhoneNumberPayload, VerifyOTPayload, UserBase
+from src.schemas import (
+    EmailRegisterPayload,
+    EmailLoginPayload,
+    PhoneNumberPayload,
+    VerifyOTPayload,
+    UserBase,
+)
 from src.helpers.sms import SmsClient
 from src.services.auth import AuthService
 
@@ -46,12 +52,31 @@ async def verify_otp_and_login(
     if saved_code is None:
         raise HTTPException(status_code=400, detail="Invalid or expired OTP")
 
-    if saved_code.decode("utf-8") == user_input_code:
+    if saved_code == user_input_code:
         await redis_client.delete(redis_key)
         await auth_service.login(response, phone_number)
         return {"message": "OTP verified successfully, user logged in."}
 
     raise HTTPException(status_code=400, detail="Invalid OTP")
+
+
+@router.post("/register", response_model=UserBase)
+async def register(
+    payload: EmailRegisterPayload,
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    return await auth_service.register_email(payload.email, payload.password)
+
+
+@router.post("/login", response_model=UserBase)
+async def login(
+    response: Response,
+    payload: EmailLoginPayload,
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    return await auth_service.login_email(
+        response, payload.email, payload.password
+    )
 
 
 @router.post("/logout")

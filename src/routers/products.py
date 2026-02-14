@@ -1,9 +1,13 @@
-from fastapi import APIRouter, Depends
+from pathlib import Path
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, File
 
 from src import schemas
-from src.services import ProductsService, ImageService
+from src.helpers.enums import ImageStorageTypeEnum
+from src.services import ProductsService
 from src.dependencies import get_current_user, get_products_service, get_storage_client
-from src.helpers.storage import StorageClient, LocalStorageClient
+from src.helpers.storage import LocalStorageClient
 
 router = APIRouter(tags=["products"], dependencies=[Depends(get_current_user)])
 
@@ -55,20 +59,52 @@ async def delete_dimension(
     return await product_service.delete_dimension(dimension_id)
 
 
-@router.get("/image/{image_id}", response_model=schemas.ImageBase)
-async def get_image(image_id: int):
-    return
-
-
-@router.post("/image", response_model=schemas.ImageBase)
-async def create_image(
-
+@router.get("/image/{image_id}", response_model=bytes)
+async def get_image(
+        image_id: int,
         product_service: ProductsService = Depends(get_products_service),
-        storage_client: StorageClient = Depends(get_storage_client),
+        storage_client: LocalStorageClient = Depends(get_storage_client),
 ):
-    storage_client.get_product_image_path()
+    db_image = await product_service.get_image(image_id)
+    image = await storage_client.read_file(str(db_image.url))
+    if image is None:
+        raise HTTPException(status_code=404, detail="Image not found")
+    return image
+
+
+@router.post("/image/{product_id}", response_model=schemas.ImageBase)
+async def create_image(
+        product_id: int,
+        storage_type: ImageStorageTypeEnum,
+        image: Annotated[bytes, File()],
+        product_service: ProductsService = Depends(get_products_service),
+        storage_client: LocalStorageClient = Depends(get_storage_client),
+):
+    product = await product_service.get_product(product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product does not exist")
+
+    if storage_type == ImageStorageTypeEnum.LOCAL:
+        filename = f"image-{len(product.images) + 1}.jpg"
+        file_path = Path(storage_client.products_dir) / filename
+        await storage_client.upload_file(file_bytes=image, destination=file_path)
+        url = file_path
+    else:
+        raise HTTPException(status_code=404, detail="Storage type not supported")
+
+    await product_service.create_image(schemas.ImageCreate(
+        product_id=product_id,
+        storage_type=ImageStorageTypeEnum.LOCAL,
+        url=str(url)
+    ))
 
 
 @router.delete("/image/{image_id}")
-async def delete_image(image_id: int):
-    return
+async def delete_image(
+        image_id: int,
+        product_service: ProductsService = Depends(get_products_service),
+        storage_client: LocalStorageClient = Depends(get_storage_client),
+):
+    db_image = await product_service.get_image(image_id)
+    await storage_client.delete_file(str(db_image.url))
+    await product_service.delete_image(image_id)

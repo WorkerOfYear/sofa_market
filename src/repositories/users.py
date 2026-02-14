@@ -1,3 +1,4 @@
+import uuid
 from typing import Sequence
 
 from sqlalchemy import select, update
@@ -16,7 +17,21 @@ class UsersRepository(SQLAlchemyRepository[User]):
         super().__init__(session)
 
     async def create(self, data: UserBase) -> User:
-        user = User(**data.model_dump())
+        user = User(**data.model_dump(exclude_none=True))
+        self._session.add(user)
+        await self._session.flush()
+        return user
+
+    async def create_with_email(
+        self,
+        email: str,
+        hashed_password: str,
+    ) -> User:
+        user = User(
+            email=email,
+            hashed_password=hashed_password,
+            phone=None,
+        )
         self._session.add(user)
         await self._session.flush()
         return user
@@ -26,7 +41,9 @@ class UsersRepository(SQLAlchemyRepository[User]):
         result = await self._session.scalars(stmt) # Посмотреть различия scalars и execute
         return result.all()
 
-    async def get_by_id(self, id_: int) -> User | None:
+    async def get_by_id(self, id_: uuid.UUID | str | int) -> User | None:
+        if isinstance(id_, str):
+            id_ = uuid.UUID(id_)
         stmt = select(self.model).where(self.model.id == id_)
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()

@@ -1,6 +1,23 @@
 import re
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, EmailStr, field_validator
+
+
+class EmailRegisterPayload(BaseModel):
+    email: EmailStr
+    password: str
+
+    @field_validator("password")
+    @classmethod
+    def password_min_length(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        return v
+
+
+class EmailLoginPayload(BaseModel):
+    email: EmailStr
+    password: str
 
 
 class PhoneNumberPayload(BaseModel):

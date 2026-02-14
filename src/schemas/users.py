@@ -13,7 +13,7 @@ class UserBase(BaseSchema):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     city: Optional[str] = None
-    phone: str
+    phone: Optional[str] = None
     is_active: Optional[bool] = None
     is_verified: Optional[bool] = None
     created_at: Optional[datetime] = None

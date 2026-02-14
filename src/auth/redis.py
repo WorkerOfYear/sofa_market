@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, Union
 
 import redis.asyncio as redis
 
@@ -10,14 +10,14 @@ class RedisStrategy:
         self.redis = redis_client
         self.lifetime_seconds = lifetime_seconds
 
-    async def create_session(self, user_id: str) -> str:
+    async def create_session(self, user_id: Union[str, uuid.UUID]) -> str:
         """Создание сессии в Redis"""
         session_id = str(uuid.uuid4())
         key = f"session:{session_id}"
 
         session_data = {
-            "user_id": user_id,
-            "created_at": datetime.now(timezone.utc),
+            "user_id": str(user_id),
+            "created_at": str(datetime.now(timezone.utc)),
         }
 
         # Сохраняем в Redis

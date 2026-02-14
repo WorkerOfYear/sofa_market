@@ -29,6 +29,7 @@ class DimensionCreate(BaseSchema):
 class ImageCreate(BaseSchema):
     product_id: int
     storage_type: ImageStorageTypeEnum
+    url: str
 
 
 class ProductCreate(BaseSchema):

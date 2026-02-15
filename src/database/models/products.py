@@ -27,11 +27,23 @@ class Product(Base):
     name: Mapped[str] = mapped_column(
         String(length=256)
     )
+    name_ru: Mapped[str | None] = mapped_column(
+        String(length=256), nullable=True
+    )
+    name_kk: Mapped[str | None] = mapped_column(
+        String(length=256), nullable=True
+    )
     slug: Mapped[str] = mapped_column(
         String(length=256)
     )
     description: Mapped[str] = mapped_column(
         String(length=256)
+    )
+    description_ru: Mapped[str | None] = mapped_column(
+        String(length=256), nullable=True
+    )
+    description_kk: Mapped[str | None] = mapped_column(
+        String(length=256), nullable=True
     )
 
     price: Mapped[int]

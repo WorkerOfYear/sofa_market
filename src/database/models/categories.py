@@ -21,6 +21,12 @@ class Category(Base):
     name: Mapped[str] = mapped_column(
         String(length=256)
     )
+    name_ru: Mapped[str | None] = mapped_column(
+        String(length=256), nullable=True
+    )
+    name_kk: Mapped[str | None] = mapped_column(
+        String(length=256), nullable=True
+    )
     slug: Mapped[str] = mapped_column(
         String(length=256)
     )

@@ -89,13 +89,7 @@ class ProductsRepository(SQLAlchemyRepository[Product]):
             await self._session.delete(image)
 
     async def search_products(
-        self,
-        category_slug: str | None = None,
-        query: str | None = None,
-        min_price: int | None = None,
-        max_price: int | None = None,
-        limit: int = 20,
-        offset: int = 0,
+            self, filters: schemas.ProductCatalogFilters, category_slug: str | None = None,
     ) -> tuple[Sequence[Product], int]:
         stmt = (
             select(Product)
@@ -113,8 +107,8 @@ class ProductsRepository(SQLAlchemyRepository[Product]):
             stmt = stmt.where(Category.slug == category_slug)
             count_stmt = count_stmt.where(Category.slug == category_slug)
 
-        if query:
-            pattern = f"%{query}%"
+        if filters.query:
+            pattern = f"%{filters.query}%"
             stmt = stmt.where(
                 or_(
                     Product.name.ilike(pattern),
@@ -128,18 +122,18 @@ class ProductsRepository(SQLAlchemyRepository[Product]):
                 )
             )
 
-        if min_price is not None:
-            stmt = stmt.where(Product.price >= min_price)
-            count_stmt = count_stmt.where(Product.price >= min_price)
+        if filters.min_price is not None:
+            stmt = stmt.where(Product.price >= filters.min_price)
+            count_stmt = count_stmt.where(Product.price >= filters.min_price)
 
-        if max_price is not None:
-            stmt = stmt.where(Product.price <= max_price)
-            count_stmt = count_stmt.where(Product.price <= max_price)
+        if filters.max_price is not None:
+            stmt = stmt.where(Product.price <= filters.max_price)
+            count_stmt = count_stmt.where(Product.price <= filters.max_price)
 
         total = await self._session.scalar(count_stmt) or 0
 
-        stmt = stmt.order_by(Product.created_at.desc()).limit(limit).offset(
-            offset
+        stmt = stmt.order_by(Product.created_at.desc()).limit(filters.limit).offset(
+            filters.offset
         )
         result = await self._session.scalars(stmt)
         products = result.all()

@@ -1,48 +1,45 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends
 
 from src import schemas
-from src.dependencies import get_catalog_service
+from src.dependencies import get_catalog_service, get_locale
+from src.schemas.catalog import ProductCatalogFilters
 from src.services import CatalogService
 
 router = APIRouter(tags=["catalog"])
 
 
-@router.get("/categories", response_model=list[schemas.CategoryBase])
+@router.get("/categories", response_model=list[schemas.CategoryCatalogItem])
 async def list_categories(
     catalog_service: CatalogService = Depends(get_catalog_service),
+    locale: str = Depends(get_locale),
 ):
-    return await catalog_service.get_categories()
+    categories = await catalog_service.get_categories()
+    return [catalog_service.map_category(c, locale) for c in categories]
 
 
-@router.get("/categories/{category_slug}")
+@router.get("/categories/{category_slug}", response_model=schemas.ProductSearchResult)
 async def get_products_by_category(
     category_slug: str,
-    query: str | None = Query(None, description="Search in name/description"),
-    min_price: int | None = Query(None, ge=0),
-    max_price: int | None = Query(None, ge=0),
-    limit: int = Query(20, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    filters: ProductCatalogFilters = Depends(),
     catalog_service: CatalogService = Depends(get_catalog_service),
+    locale: str = Depends(get_locale),
 ):
     products, total = await catalog_service.get_products_by_category(
-        category_slug=category_slug,
-        query=query,
-        min_price=min_price,
-        max_price=max_price,
-        limit=limit,
-        offset=offset,
+        filters, category_slug
     )
     return schemas.ProductSearchResult(
-        items=[schemas.ProductBase.model_validate(p) for p in products],
+        items=[catalog_service.map_product(p, locale) for p in products],
         total=total,
-        limit=limit,
-        offset=offset,
+        limit=filters.limit,
+        offset=filters.offset,
     )
 
 
-@router.get("/products/{product_id}", response_model=schemas.ProductBase)
+@router.get("/products/{product_id}", response_model=schemas.ProductCatalogItem)
 async def get_product(
     product_id: int,
     catalog_service: CatalogService = Depends(get_catalog_service),
+    locale: str = Depends(get_locale),
 ):
-    return await catalog_service.get_product(product_id)
+    product = await catalog_service.get_product(product_id)
+    return catalog_service.map_product(product, locale)

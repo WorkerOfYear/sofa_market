@@ -28,6 +28,7 @@ class ProductsService:
         if category is None:
             raise HTTPException(status_code=404, detail="Category not found")
 
+        self._apply_localization_defaults(data)
         return await self.uow.product_repo.create_product(data)
 
     async def delete_product(self, product_id: int) -> None:
@@ -51,3 +52,12 @@ class ProductsService:
 
     async def delete_image(self, image_id: int) -> None:
         return await self.uow.product_repo.delete_image(image_id)
+
+    @staticmethod
+    def _apply_localization_defaults(data: schemas.ProductCreate) -> None:
+
+        if not data.name_ru is None:
+            data.name_ru = data.name
+
+        if not data.description_ru is None:
+            data.description_ru = data.description

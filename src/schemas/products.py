@@ -38,6 +38,10 @@ class ProductCreate(BaseSchema):
     price: int = Field(gt=0)
     category_id: int
     slug: str | None = Field(None, max_length=256)
+    name_ru: str | None = Field(None, max_length=256)
+    name_kk: str | None = Field(None, max_length=256)
+    description_ru: str | None = Field(None, max_length=256)
+    description_kk: str | None = Field(None, max_length=256)
 
     @field_validator("slug", mode="before")
     @classmethod
@@ -52,6 +56,10 @@ class ProductUpdate(BaseSchema):
     description: str | None = Field(None, max_length=256)
     price: int | None = Field(None, gt=0)
     category_id: int | None = None
+    name_ru: str | None = Field(None, max_length=256)
+    name_kk: str | None = Field(None, max_length=256)
+    description_ru: str | None = Field(None, max_length=256)
+    description_kk: str | None = Field(None, max_length=256)
 
 
 class ProductBase(BaseSchema):
@@ -61,6 +69,10 @@ class ProductBase(BaseSchema):
     description: str
     price: int
     category_id: int
+    name_ru: str | None
+    name_kk: str | None
+    description_ru: str | None
+    description_kk: str | None
     created_at: datetime
     updated_at: datetime
     images: list[ImageBase] = []

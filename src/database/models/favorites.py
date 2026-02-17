@@ -18,10 +18,14 @@ class Favorite(Base):
         ForeignKey("users.id"), primary_key=True
     )
     user: Mapped["User"] = relationship(
-        back_populates="favorite", single_parent=True
+        back_populates="favorite",
+        single_parent=True,
+        lazy="raise"
     )
     favorites_products: Mapped[list["FavoriteProduct"]] = relationship(
-        "FavoriteProduct", back_populates="favorite"
+        "FavoriteProduct",
+        back_populates="favorite",
+        lazy="raise"
     )
 
 
@@ -40,8 +44,12 @@ class FavoriteProduct(Base):
         ForeignKey("products.id")
     )
     favorite: Mapped["Favorite"] = relationship(
-        "Favorite", back_populates="favorites_products", single_parent=True
+        "Favorite",
+        back_populates="favorites_products",
+        single_parent=True
     )
     product: Mapped["Product"] = relationship(
-        "Product", back_populates="favorites_products", single_parent=True
+        "Product",
+        back_populates="favorites_products",
+        single_parent=True
     )

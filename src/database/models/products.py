@@ -1,16 +1,18 @@
 import typing
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, String, func
+from sqlalchemy import ForeignKey, String, func, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database.db import Base
+from src.helpers.enums import ImageStorageTypeEnum
 
 if typing.TYPE_CHECKING:
     from src.database.models import (
         CartProduct,
         Category,
         FavoriteProduct,
+        PromotionProduct,
         PurchaseProduct,
     )
 
@@ -24,15 +26,29 @@ class Product(Base):
         primary_key=True
     )
     name: Mapped[str] = mapped_column(
-        String(length=100)
+        String(length=256)
+    )
+    name_ru: Mapped[str | None] = mapped_column(
+        String(length=256), nullable=True
+    )
+    name_kk: Mapped[str | None] = mapped_column(
+        String(length=256), nullable=True
     )
     slug: Mapped[str] = mapped_column(
-        String(length=100)
+        String(length=256)
     )
     description: Mapped[str] = mapped_column(
-        String(length=100)
+        String(length=256)
     )
+    description_ru: Mapped[str | None] = mapped_column(
+        String(length=256), nullable=True
+    )
+    description_kk: Mapped[str | None] = mapped_column(
+        String(length=256), nullable=True
+    )
+
     price: Mapped[int]
+
     category_id: Mapped[int] = mapped_column(
         ForeignKey("categories.id")
     )
@@ -43,22 +59,40 @@ class Product(Base):
         server_default=func.now(), server_onupdate=func.now()
     )
     category: Mapped["Category"] = relationship(
-        "Category", back_populates="products", single_parent=True
+        "Category",
+        back_populates="products",
+        single_parent=True,
+        lazy="raise"
     )
     images: Mapped[list["Image"]] = relationship(
-        "Image", back_populates="product"
+        "Image",
+        back_populates="product",
+        lazy="raise"
     )
     dimensions: Mapped[list["Dimension"]] = relationship(
-        "Dimension", back_populates="product"
+        "Dimension",
+        back_populates="product",
+        lazy="raise"
     )
     carts_products: Mapped[list["CartProduct"]] = relationship(
-        "CartProduct", back_populates="product", lazy="joined"
+        "CartProduct",
+        back_populates="product",
+        lazy="raise"
     )
     favorites_products: Mapped[list["FavoriteProduct"]] = relationship(
-        "FavoriteProduct", back_populates="product"
+        "FavoriteProduct",
+        back_populates="product",
+        lazy="raise"
     )
     purchases_products: Mapped[list["PurchaseProduct"]] = relationship(
-        "PurchaseProduct", back_populates="product"
+        "PurchaseProduct",
+        back_populates="product",
+        lazy="raise"
+    )
+    promotions_products: Mapped[list["PromotionProduct"]] = relationship(
+        "PromotionProduct",
+        back_populates="product",
+        lazy="raise"
     )
 
     def __str__(self):
@@ -73,12 +107,23 @@ class Image(Base):
     id: Mapped[int] = mapped_column(
         primary_key=True
     )
+
     url: Mapped[str]
+
     product_id: Mapped[int] = mapped_column(
         ForeignKey("products.id")
     )
+    storage_type: Mapped[ImageStorageTypeEnum] = mapped_column(
+        Enum(ImageStorageTypeEnum, native_enum=False),
+        default=ImageStorageTypeEnum.LOCAL,
+        nullable=False,
+    )
+
     product: Mapped["Product"] = relationship(
-        "Product", back_populates="images", single_parent=True
+        "Product",
+        back_populates="images",
+        single_parent=True,
+        lazy="raise"
     )
 
     def __str__(self):
@@ -106,7 +151,10 @@ class Dimension(Base):
         ForeignKey("products.id")
     )
     product: Mapped["Product"] = relationship(
-        "Product", back_populates="dimensions", single_parent=True
+        "Product",
+        back_populates="dimensions",
+        single_parent=True,
+        lazy="raise"
     )
 
     def __str__(self):

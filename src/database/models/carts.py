@@ -20,12 +20,19 @@ class Cart(Base):
     user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id")
     )
+
     total_price: Mapped[int]
+
     user: Mapped["User"] = relationship(
-        "User", back_populates="cart", single_parent=True
+        "User",
+        back_populates="cart",
+        single_parent=True,
+        lazy="raise"
     )
     carts_products: Mapped[list["CartProduct"]] = relationship(
-        "CartProduct", back_populates="cart"
+        "CartProduct",
+        back_populates="cart",
+        lazy="raise"
     )
 
 
@@ -43,13 +50,18 @@ class CartProduct(Base):
     product_id: Mapped[int] = mapped_column(
         ForeignKey("products.id")
     )
+
     quantity: Mapped[int]
+
     cart: Mapped["Cart"] = relationship(
-        "Cart", back_populates="carts_products", single_parent=True
+        "Cart",
+        back_populates="carts_products",
+        single_parent=True,
+        lazy="raise"
     )
     product: Mapped["Product"] = relationship(
         "Product",
         back_populates="carts_products",
         single_parent=True,
-        lazy="joined",
+        lazy="raise",
     )

@@ -175,3 +175,7 @@ cython_debug/
 .pypirc
 
 .idea/
+
+
+# LOCAL
+storage/*

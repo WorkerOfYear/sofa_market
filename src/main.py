@@ -1,26 +1,50 @@
+from contextlib import asynccontextmanager
+
 import uvicorn
-from fastapi import FastAPI
-from fastapi.exceptions import RequestValidationError
+import redis.asyncio as redis
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from src.helpers.exceptions import HTTPUnauthorized, unauthorized_exception_handler, validation_exception_handler, \
-    global_exception_handler
+from src.helpers.storage import LocalStorageClient
 from src.middlewares import log_middleware
+from src.auth import CookieTransport, RedisStrategy
 from src.routers import router
 from src.logger import logger
+from src.config import settings
+from src.core import CustomApp
+from src.helpers.sms import MobizonClient
 
 
-app = FastAPI(title="marketplace")
+@asynccontextmanager
+async def lifespan(app: CustomApp):
+    app.state.redis_client = redis.from_url(
+        settings.REDIS_URL,
+        decode_responses=True
+    )
+    app.state.cookie_transport = CookieTransport(
+        cookie_name=settings.AUTH_COOKIE_NAME,
+        cookie_max_age=settings.SESSION_LIFETIME,
+        cookie_secure=settings.ENVIRONMENT == "prod",
+    )
+    app.state.redis_strategy = RedisStrategy(
+        app.state.redis_client,
+        lifetime_seconds=settings.SESSION_LIFETIME
+    )
+    app.state.sms_client = MobizonClient(
+        key=settings.MOBIZON_API_KEY
+    )
+    app.state.storage_client = LocalStorageClient("./storage")
+
+    yield
+
+    await app.state.redis_client.close()
+
+
+app = CustomApp(title="marketplace", lifespan=lifespan)
 logger.info("Starting API...")
 
 app.add_middleware(BaseHTTPMiddleware, dispatch=log_middleware)
 
 app.include_router(router)
-
-
-app.add_exception_handler(HTTPUnauthorized, unauthorized_exception_handler)
-app.add_exception_handler(RequestValidationError, validation_exception_handler)
-app.add_exception_handler(Exception, global_exception_handler)
 
 
 if __name__ == "__main__":

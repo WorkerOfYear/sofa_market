@@ -4,10 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Класс для работы с переменными окружения."""
-
-    MODE: Literal["DEV", "TEST", "PROD", "INFO", "DEBUG"]
-    LOG_LEVEL: str
+    ENVIRONMENT: Literal["dev", "prod"] = "dev"
 
     POSTGRES_DB_NAME: str
     POSTGRES_TEST_DB_NAME: str
@@ -16,19 +13,14 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
 
-    SECRET_KEY: str
-    ALGORITHM: str
+    AUTH_SECRET_KEY: str
+    AUTH_COOKIE_NAME: str
+    SESSION_LIFETIME: int
 
     REDIS_HOST: str
     REDIS_PORT: str
 
-    SMTP_USER: str
-    SMTP_PASSWORD: str
-    SMTP_HOST: str
-    SMTP_PORT: int
-
-    SECRET: str
-    PASSWORD: str
+    MOBIZON_API_KEY: str
 
     @property
     def DATABASE_URL(self):
@@ -46,11 +38,13 @@ class Settings(BaseSettings):
             f"{self.POSTGRES_PORT}/{self.POSTGRES_TEST_DB_NAME}"
         )
 
-    # для локальной разработки
-    model_config = SettingsConfigDict(env_file=".env")
+    @property
+    def REDIS_URL(self):
+        return (
+            f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}"
+        )
 
-    # для запуска в docker
-    # model_config = SettingsConfigDict(env_file='.env-docker')
+    model_config = SettingsConfigDict(env_file=".env")
 
 
 settings = Settings()

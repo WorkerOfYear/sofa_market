@@ -16,13 +16,16 @@ class CategoryCatalogItem(BaseSchema):
 
 
 class ProductCatalogItem(BaseSchema):
-    """Product in catalog with localized name/description."""
+    """Product in catalog with localized name/description and promotion pricing."""
 
     id: int
     name: str
     slug: str
     description: str
     price: int
+    current_price: int
+    is_on_promotion: bool
+    discount_percent: int
     category_id: int
     created_at: datetime
     updated_at: datetime

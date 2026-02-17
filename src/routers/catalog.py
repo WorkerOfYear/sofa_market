@@ -13,6 +13,7 @@ async def list_categories(
     catalog_service: CatalogService = Depends(get_catalog_service),
     locale: str = Depends(get_locale),
 ):
+    """List all categories (public, no auth)."""
     categories = await catalog_service.get_categories()
     return [catalog_service.map_category(c, locale) for c in categories]
 
@@ -24,11 +25,12 @@ async def get_products_by_category(
     catalog_service: CatalogService = Depends(get_catalog_service),
     locale: str = Depends(get_locale),
 ):
-    products, total = await catalog_service.get_products_by_category(
-        filters, category_slug
+    """Products in category with optional filters (public, no auth)."""
+    items, total = await catalog_service.get_products_by_category(
+        filters, category_slug, locale
     )
     return schemas.ProductSearchResult(
-        items=[catalog_service.map_product(p, locale) for p in products],
+        items=items,
         total=total,
         limit=filters.limit,
         offset=filters.offset,
@@ -41,5 +43,5 @@ async def get_product(
     catalog_service: CatalogService = Depends(get_catalog_service),
     locale: str = Depends(get_locale),
 ):
-    product = await catalog_service.get_product(product_id)
-    return catalog_service.map_product(product, locale)
+    """Product detail (public, no auth)."""
+    return await catalog_service.get_product(product_id, locale)

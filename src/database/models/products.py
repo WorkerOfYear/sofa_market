@@ -12,6 +12,7 @@ if typing.TYPE_CHECKING:
         CartProduct,
         Category,
         FavoriteProduct,
+        PromotionProduct,
         PurchaseProduct,
     )
 
@@ -85,6 +86,11 @@ class Product(Base):
     )
     purchases_products: Mapped[list["PurchaseProduct"]] = relationship(
         "PurchaseProduct",
+        back_populates="product",
+        lazy="raise"
+    )
+    promotions_products: Mapped[list["PromotionProduct"]] = relationship(
+        "PromotionProduct",
         back_populates="product",
         lazy="raise"
     )

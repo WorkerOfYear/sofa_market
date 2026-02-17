@@ -1,11 +1,19 @@
+from datetime import datetime, timezone
 from typing import Sequence
 
-from sqlalchemy import select, func, or_
-from sqlalchemy.orm import selectinload
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src import schemas
-from src.database.models import Product, Dimension, Image, Category
+from src.database.models import (
+    Category,
+    Dimension,
+    Image,
+    Product,
+    Promotion,
+    PromotionProduct,
+)
 
 from .base import SQLAlchemyRepository
 
@@ -25,14 +33,52 @@ class ProductsRepository(SQLAlchemyRepository[Product]):
         return result.all()
 
     async def get_product(self, product_id: int) -> Product | None:
-        stmt = select(self.model).filter(
-            self.model.id == product_id,
-        ).options(
-            selectinload(self.model.images),
-            selectinload(self.model.dimensions),
+        stmt = (
+            select(self.model)
+            .filter(
+                self.model.id == product_id,
+            )
+            .options(
+                selectinload(self.model.images),
+                selectinload(self.model.dimensions),
+            )
         )
         result = await self._session.scalars(stmt)
         return result.first()
+
+    async def get_discounts_for_products(
+        self, product_ids: list[int]
+    ) -> dict[int, int]:
+        """
+        Get best active discount for each product.
+        Returns {product_id: discount_percent}.
+        """
+        if not product_ids:
+            return {}
+
+        now = datetime.now(timezone.utc)
+
+        stmt = (
+            select(
+                PromotionProduct.product_id,
+                func.max(Promotion.discount_percent).label("discount"),
+            )
+            .join(Promotion, PromotionProduct.promotion_id == Promotion.id)
+            .where(
+                PromotionProduct.product_id.in_(product_ids),
+                or_(
+                    Promotion.valid_until.is_(None),
+                    Promotion.valid_until > now,
+                ),
+                or_(
+                    Promotion.valid_from.is_(None), Promotion.valid_from <= now
+                ),
+            )
+            .group_by(PromotionProduct.product_id)
+        )
+
+        result = await self._session.execute(stmt)
+        return {row.product_id: row.discount for row in result}
 
     async def create_product(self, data: schemas.ProductCreate) -> Product:
         product = self.model(**data.model_dump())
@@ -89,7 +135,9 @@ class ProductsRepository(SQLAlchemyRepository[Product]):
             await self._session.delete(image)
 
     async def search_products(
-            self, filters: schemas.ProductCatalogFilters, category_slug: str | None = None,
+        self,
+        filters: schemas.ProductCatalogFilters,
+        category_slug: str | None = None,
     ) -> tuple[Sequence[Product], int]:
         stmt = (
             select(Product)
@@ -132,9 +180,10 @@ class ProductsRepository(SQLAlchemyRepository[Product]):
 
         total = await self._session.scalar(count_stmt) or 0
 
-        stmt = stmt.order_by(Product.created_at.desc()).limit(filters.limit).offset(
-            filters.offset
-        )
+        stmt = stmt.order_by(Product.created_at.desc()).limit(
+            filters.limit
+        ).offset(filters.offset)
+
         result = await self._session.scalars(stmt)
         products = result.all()
 

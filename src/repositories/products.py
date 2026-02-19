@@ -56,7 +56,7 @@ class ProductsRepository(SQLAlchemyRepository[Product]):
         if not product_ids:
             return {}
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now()
 
         stmt = (
             select(

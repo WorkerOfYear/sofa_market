@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Sequence
 
 from sqlalchemy import func, or_, select

@@ -22,6 +22,8 @@ class Settings(BaseSettings):
 
     MOBIZON_API_KEY: str
 
+    ELASTICSEARCH_URL: str = "http://localhost:9200"
+
     @property
     def DATABASE_URL(self):
         return (

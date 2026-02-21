@@ -2,16 +2,18 @@ from contextlib import asynccontextmanager
 
 import uvicorn
 import redis.asyncio as redis
+from elasticsearch import AsyncElasticsearch
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from src.helpers.storage import LocalStorageClient
-from src.middlewares import log_middleware
 from src.auth import CookieTransport, RedisStrategy
-from src.routers import router
-from src.logger import logger
 from src.config import settings
 from src.core import CustomApp
 from src.helpers.sms import MobizonClient
+from src.helpers.storage import LocalStorageClient
+from src.logger import logger
+from src.middlewares import log_middleware
+from src.routers import router
+from src.search import SearchService
 
 
 @asynccontextmanager
@@ -33,9 +35,15 @@ async def lifespan(app: CustomApp):
         key=settings.MOBIZON_API_KEY
     )
     app.state.storage_client = LocalStorageClient("./storage")
+    
+    app.state.es_client = AsyncElasticsearch(settings.ELASTICSEARCH_URL)
+    app.state.search_service = SearchService(app.state.es_client)
+    await app.state.search_service.ensure_indices()
+    logger.info("Elasticsearch connected")
 
     yield
 
+    await app.state.es_client.close()
     await app.state.redis_client.close()
 
 

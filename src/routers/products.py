@@ -4,11 +4,17 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, File
 
 from src import schemas
-from src.helpers.enums import ImageStorageTypeEnum
-from src.services import ProductsService
-from src.dependencies import get_current_user, get_products_service, get_storage_client
+from src.dependencies import (
+    get_current_user,
+    get_products_service,
+    get_search_service,
+    get_storage_client,
+)
+from src.helpers.enums import ImageStorageTypeEnum, StorageDirectory
 from src.helpers.storage import LocalStorageClient
-from src.helpers.enums import StorageDirectory
+from src.search import SearchService
+from src.search.documents import product_to_doc
+from src.services import ProductsService
 
 router = APIRouter(tags=["products"], dependencies=[Depends(get_current_user)])
 
@@ -32,16 +38,22 @@ async def get_product(
 async def create_product(
         data: schemas.ProductCreate,
         product_service: ProductsService = Depends(get_products_service),
+        search_service: SearchService = Depends(get_search_service),
 ):
-    return await product_service.create_product(data)
+    product = await product_service.create_product(data)
+    category = await product_service.uow.category_repo.get_by_id(product.category_id)
+    await search_service.index_product(product_to_doc(product, category))
+    return product
 
 
 @router.delete("/{product_id}")
-async def delete_dimension(
+async def delete_product(
         product_id: int,
         product_service: ProductsService = Depends(get_products_service),
+        search_service: SearchService = Depends(get_search_service),
 ):
-    return await product_service.delete_product(product_id)
+    await product_service.delete_product(product_id)
+    await search_service.delete_product(product_id)
 
 
 @router.post("/dimension", response_model=schemas.DimensionBase)

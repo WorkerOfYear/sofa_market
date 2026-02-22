@@ -2,18 +2,24 @@ import secrets
 import string
 
 from redis.asyncio import Redis
-from fastapi import APIRouter, Depends, HTTPException, Response, Request
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, Request
 
-from src.dependencies import get_auth_service, get_sms_client, get_redis_client
-from src.schemas import (
-    EmailRegisterPayload,
-    EmailLoginPayload,
-    PhoneNumberPayload,
-    VerifyOTPayload,
-    UserBase,
+from src.dependencies import (
+    get_auth_service,
+    get_carts_service,
+    get_redis_client,
+    get_sms_client,
 )
 from src.helpers.sms import SmsClient
+from src.schemas import (
+    EmailLoginPayload,
+    EmailRegisterPayload,
+    PhoneNumberPayload,
+    UserBase,
+    VerifyOTPayload,
+)
 from src.services.auth import AuthService
+from src.services.carts import CartsService
 
 router = APIRouter(tags=["auth"])
 
@@ -41,7 +47,9 @@ async def verify_otp_and_login(
         response: Response,
         payload: VerifyOTPayload,
         redis_client: Redis = Depends(get_redis_client),
-        auth_service: AuthService = Depends(get_auth_service)
+        auth_service: AuthService = Depends(get_auth_service),
+        carts_service: CartsService = Depends(get_carts_service),
+        cart_session: str | None = Cookie(None),
 ):
     phone_number = payload.phone
     user_input_code = payload.otp_code
@@ -54,7 +62,8 @@ async def verify_otp_and_login(
 
     if saved_code == user_input_code:
         await redis_client.delete(redis_key)
-        await auth_service.login(response, phone_number)
+        user = await auth_service.login(response, phone_number)
+        await carts_service.merge_on_login(user.id, cart_session)
         return {"message": "OTP verified successfully, user logged in."}
 
     raise HTTPException(status_code=400, detail="Invalid OTP")
@@ -73,10 +82,14 @@ async def login(
     response: Response,
     payload: EmailLoginPayload,
     auth_service: AuthService = Depends(get_auth_service),
+    carts_service: CartsService = Depends(get_carts_service),
+    cart_session: str | None = Cookie(None),
 ):
-    return await auth_service.login_email(
+    user = await auth_service.login_email(
         response, str(payload.email), payload.password
     )
+    await carts_service.merge_on_login(user.id, cart_session)
+    return user
 
 
 @router.post("/logout")

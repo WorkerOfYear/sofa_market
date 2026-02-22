@@ -38,3 +38,14 @@ async def get_current_user(
         auth_service: AuthService = Depends(get_auth_service),
 ) -> UserBase:
     return await auth_service.get_current_user(request)
+
+
+async def get_current_user_optional(
+        request: Request,
+        auth_service: AuthService = Depends(get_auth_service),
+) -> UserBase | None:
+    """Returns the current user or None if not authenticated."""
+    try:
+        return await auth_service.get_current_user(request)
+    except Exception:
+        return None

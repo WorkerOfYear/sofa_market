@@ -34,9 +34,11 @@ async def lifespan(app: CustomApp):
     app.state.sms_client = MobizonClient(
         key=settings.MOBIZON_API_KEY
     )
-    app.state.storage_client = LocalStorageClient("./storage")
+    app.state.storage_client = LocalStorageClient(
+        settings.LOCAL_STORAGE_PATH
+    )
     
-    app.state.es_client = AsyncElasticsearch(settings.ELASTICSEARCH_URL)
+    app.state.es_client = AsyncElasticsearch(settings.ES_URL)
     app.state.search_service = SearchService(app.state.es_client)
     await app.state.search_service.ensure_indices()
     logger.info("Elasticsearch connected")

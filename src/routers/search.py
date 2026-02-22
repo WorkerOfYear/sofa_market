@@ -8,7 +8,7 @@ from src.schemas.search import (
 )
 from src.search import SearchService
 
-router = APIRouter(tags=["search"])
+router = APIRouter(tags=["catalog"])
 
 
 @router.get("/search", response_model=AutocompleteResponse)

@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 async def reindex() -> None:
-    es = AsyncElasticsearch(settings.ELASTICSEARCH_URL)
+    es = AsyncElasticsearch(settings.ES_URL)
     search = SearchService(es)
 
     await search.ensure_indices()

@@ -22,7 +22,12 @@ class Settings(BaseSettings):
 
     MOBIZON_API_KEY: str
 
-    ELASTICSEARCH_URL: str = "http://localhost:9200"
+    ES_PASSWORD: str
+    ES_USER: str
+    ES_HOST: str
+    ES_PORT: int
+
+    LOCAL_STORAGE_PATH: str
 
     @property
     def DATABASE_URL(self):
@@ -44,6 +49,12 @@ class Settings(BaseSettings):
     def REDIS_URL(self):
         return (
             f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}"
+        )
+
+    @property
+    def ES_URL(self):
+        return (
+            f"http://{self.ES_USER}:{self.ES_PASSWORD}@{self.ES_HOST}:{self.ES_PORT}"
         )
 
     model_config = SettingsConfigDict(env_file=".env")

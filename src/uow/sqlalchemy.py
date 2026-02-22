@@ -2,10 +2,11 @@ from contextlib import asynccontextmanager
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from src.repositories.users import UsersRepository
-from src.repositories.products import ProductsRepository
+from src.repositories.carts import CartsRepository
 from src.repositories.categories import CategoriesRepository
+from src.repositories.products import ProductsRepository
 from src.repositories.promotions import PromotionsRepository
+from src.repositories.users import UsersRepository
 from src.uow.base import AbstractUnitOfWork
 
 
@@ -22,6 +23,7 @@ class UnitOfWork(AbstractUnitOfWork):
             self.product_repo = ProductsRepository(self.session)
             self.category_repo = CategoriesRepository(self.session)
             self.promotion_repo = PromotionsRepository(self.session)
+            self.cart_repo = CartsRepository(self.session)
 
             yield self
             await self.session.commit()

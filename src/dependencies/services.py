@@ -8,6 +8,7 @@ from src.services import (
     ImageService,
     ProductsService,
     PromotionsService,
+    PurchasesService,
 )
 from src.services.carts import CartsService
 from src.uow.sqlalchemy import UnitOfWork
@@ -49,3 +50,9 @@ async def get_favorites_service(
     uow: UnitOfWork = Depends(get_uow),
 ) -> FavoritesService:
     return FavoritesService(uow)
+
+
+async def get_purchases_service(
+    uow: UnitOfWork = Depends(get_uow),
+) -> PurchasesService:
+    return PurchasesService(uow)

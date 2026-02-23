@@ -1,7 +1,9 @@
 import typing
 from datetime import datetime
+import uuid
 
 from sqlalchemy import Enum, ForeignKey, func
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database.db import Base
@@ -22,8 +24,8 @@ class Purchase(Base):
     status: Mapped["PurchaseStatusEnum"] = mapped_column(
         Enum(PurchaseStatusEnum), nullable=False
     )
-    user_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id"), nullable=True
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(
         server_default=func.now()

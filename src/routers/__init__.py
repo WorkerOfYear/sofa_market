@@ -6,6 +6,7 @@ from src.routers.catalog import router as catalog_router
 from src.routers.favorites import router as favorites_router
 from src.routers.products import router as products_router
 from src.routers.promotions import router as promotions_router
+from src.routers.purchases import router as purchases_router
 from src.routers.search import router as search_router
 
 router = APIRouter(prefix="/api/v1")
@@ -16,4 +17,5 @@ router.include_router(catalog_router, prefix="/catalog")
 router.include_router(favorites_router, prefix="/favorites")
 router.include_router(products_router, prefix="/products")
 router.include_router(promotions_router, prefix="/promotions")
+router.include_router(purchases_router, prefix="/purchases")
 router.include_router(search_router, prefix="/catalog")

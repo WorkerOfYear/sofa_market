@@ -7,6 +7,7 @@ from src.repositories.categories import CategoriesRepository
 from src.repositories.favorites import FavoritesRepository
 from src.repositories.products import ProductsRepository
 from src.repositories.promotions import PromotionsRepository
+from src.repositories.purchases import PurchasesRepository
 from src.repositories.users import UsersRepository
 from src.uow.base import AbstractUnitOfWork
 
@@ -26,6 +27,7 @@ class UnitOfWork(AbstractUnitOfWork):
             self.promotion_repo = PromotionsRepository(self.session)
             self.cart_repo = CartsRepository(self.session)
             self.favorite_repo = FavoritesRepository(self.session)
+            self.purchase_repo = PurchasesRepository(self.session)
 
             yield self
             await self.session.commit()

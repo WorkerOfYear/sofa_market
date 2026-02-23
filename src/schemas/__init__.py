@@ -5,4 +5,5 @@ from .carts import *
 from .catalog import *
 from .favorites import *
 from .promotions import *
+from .purchases import *
 from .search import *

@@ -5,3 +5,4 @@ from .favorites import *
 from .images import *
 from .products import *
 from .promotions import *
+from .purchases import *

@@ -2,6 +2,7 @@ import uuid
 
 from fastapi import HTTPException
 
+from src.database.models import Product
 from src.schemas.favorites import FavoriteItemResponse, FavoritesResponse
 from src.uow.sqlalchemy import UnitOfWork
 
@@ -94,7 +95,7 @@ class FavoritesService:
         return None
 
     @staticmethod
-    def _build_response(products) -> FavoritesResponse:
+    def _build_response(products: list[Product]) -> FavoritesResponse:
         items = [
             FavoriteItemResponse(
                 id=product.id,

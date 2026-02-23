@@ -1,6 +1,9 @@
 import typing
+import uuid
+from datetime import datetime
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import Boolean, ForeignKey, String, UniqueConstraint, func
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database.db import Base
@@ -14,11 +17,22 @@ class Favorite(Base):
 
     __tablename__ = "favorites"
 
-    id: Mapped[int] = mapped_column(
-        ForeignKey("users.id"), primary_key=True
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True
+    )
+    session_id: Mapped[str | None] = mapped_column(
+        String(length=64), nullable=True, index=True
+    )
+    is_deleted: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    deleted_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     user: Mapped["User"] = relationship(
-        back_populates="favorite",
+        back_populates="favorites",
         single_parent=True,
         lazy="raise"
     )
@@ -33,11 +47,14 @@ class FavoriteProduct(Base):
     """Модель продукта в желаемом"""
 
     __tablename__ = "favorites_products"
+    __table_args__ = (
+        UniqueConstraint("favorite_id", "product_id", name="uq_favorite_product"),
+    )
 
     id: Mapped[int] = mapped_column(
         primary_key=True
     )
-    favorite_id: Mapped[int] = mapped_column(
+    favorite_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("favorites.id")
     )
     product_id: Mapped[int] = mapped_column(

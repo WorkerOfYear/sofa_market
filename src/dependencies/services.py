@@ -4,6 +4,7 @@ from src.dependencies import get_storage_client
 from src.helpers.storage import StorageClient
 from src.services import (
     CatalogService,
+    FavoritesService,
     ImageService,
     ProductsService,
     PromotionsService,
@@ -42,3 +43,9 @@ async def get_carts_service(
     uow: UnitOfWork = Depends(get_uow),
 ) -> CartsService:
     return CartsService(uow)
+
+
+async def get_favorites_service(
+    uow: UnitOfWork = Depends(get_uow),
+) -> FavoritesService:
+    return FavoritesService(uow)

@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from src.repositories.carts import CartsRepository
 from src.repositories.categories import CategoriesRepository
+from src.repositories.favorites import FavoritesRepository
 from src.repositories.products import ProductsRepository
 from src.repositories.promotions import PromotionsRepository
 from src.repositories.users import UsersRepository
@@ -24,6 +25,7 @@ class UnitOfWork(AbstractUnitOfWork):
             self.category_repo = CategoriesRepository(self.session)
             self.promotion_repo = PromotionsRepository(self.session)
             self.cart_repo = CartsRepository(self.session)
+            self.favorite_repo = FavoritesRepository(self.session)
 
             yield self
             await self.session.commit()

@@ -3,5 +3,6 @@ from .products import *
 from .auth import *
 from .carts import *
 from .catalog import *
+from .favorites import *
 from .promotions import *
 from .search import *

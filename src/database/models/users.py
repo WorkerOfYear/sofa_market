@@ -59,7 +59,7 @@ class User(Base):
         cascade="all, delete-orphan",
         lazy="raise"
     )
-    favorite: Mapped["Favorite"] = relationship(
+    favorites: Mapped[list["Favorite"]] = relationship(
         "Favorite",
         back_populates="user",
         cascade="all, delete-orphan",

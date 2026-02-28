@@ -1,0 +1,43 @@
+{{- if .Values.migration.run }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "sofa-server.fullname" . }}-migrate-{{ .Release.Revision }}
+  labels:
+    {{- include "sofa-server.labels" . | nindent 4 }}
+  annotations:
+    # Automatically removed after the Job completes successfully.
+    "helm.sh/hook": pre-upgrade,pre-install
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 300
+  template:
+    metadata:
+      labels:
+        {{- include "sofa-server.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: migration
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+        - name: alembic-migrate
+          image: {{ include "sofa-server.migrationImage" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["alembic", "upgrade", "head"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "sofa-server.fullname" . }}
+            - secretRef:
+                name: {{ include "sofa-server.fullname" . }}
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+{{- end }}

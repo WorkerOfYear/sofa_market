@@ -1,0 +1,94 @@
+image:
+  repository: registry.gitlab.com/your-group/sofa_server
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  enabled: true
+  className: nginx
+  host: api.example.com
+  tls: false
+  tlsSecretName: sofa-server-tls
+  annotations: {}
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+env:
+  # Non-sensitive settings exposed via ConfigMap.
+  # Override per environment.
+  DEBUG: "false"
+  LOG_LEVEL: "info"
+  WORKERS: "4"
+  # Elasticsearch
+  ELASTICSEARCH_HOST: "http://elasticsearch:9200"
+  # Redis
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+
+secret:
+  # All values here end up in a Kubernetes Secret and are passed as env vars.
+  # In CI, set these as masked GitLab variables and pass with --set secret.*
+  DATABASE_URL: ""
+  SECRET_KEY: ""
+  AWS_ACCESS_KEY_ID: ""
+  AWS_SECRET_ACCESS_KEY: ""
+  AWS_BUCKET_NAME: ""
+  AWS_REGION: ""
+  SMS_API_KEY: ""
+
+migration:
+  # Set to true in the deploy job to run alembic upgrade head before rollout.
+  run: false
+  image:
+    repository: registry.gitlab.com/your-group/sofa_server
+    tag: latest
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+
+livenessProbe:
+  httpGet:
+    path: /api/v1/health
+    port: 8000
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /api/v1/health
+    port: 8000
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  failureThreshold: 3

@@ -1,20 +1,229 @@
+---
+# ---------------------------------------------------------------------------
+# Pipeline stages
+# ---------------------------------------------------------------------------
 stages:
-  - build
+  - lint
   - test
+  - build
   - deploy
 
-build-job:
-  stage: build
-  script:
-    - docker build -t market-backend-image .
+# ---------------------------------------------------------------------------
+# Global defaults
+# ---------------------------------------------------------------------------
+default:
+  interruptible: true
 
-test-job:
+variables:
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  IMAGE_LATEST: $CI_REGISTRY_IMAGE:latest
+  HELM_CHART: helm/sofa-server
+  PYTHON_IMAGE: python:3.12-slim
+
+# ---------------------------------------------------------------------------
+# Templates (reusable anchors)
+# ---------------------------------------------------------------------------
+.deploy-template: &deploy-template
+  image:
+    name: alpine/helm:3.17.0
+    entrypoint: [""]
+  before_script:
+    - mkdir -p ~/.kube
+    - echo "$KUBE_CONFIG" | base64 -d > ~/.kube/config
+    - chmod 600 ~/.kube/config
+
+.only-dev: &only-dev
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+
+.only-staging: &only-staging
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+.only-prod: &only-prod
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
+
+# ---------------------------------------------------------------------------
+# Stage: lint
+# ---------------------------------------------------------------------------
+lint:ruff:
+  stage: lint
+  image: $PYTHON_IMAGE
+  before_script:
+    - pip install --no-cache-dir ruff
+  script:
+    - ruff check src/
+    - ruff format --check src/
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+
+lint:mypy:
+  stage: lint
+  image: $PYTHON_IMAGE
+  before_script:
+    - pip install --no-cache-dir poetry
+    - poetry config virtualenvs.create false
+    - poetry install --no-interaction --no-ansi
+  script:
+    - mypy src/
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+
+# ---------------------------------------------------------------------------
+# Stage: test
+# ---------------------------------------------------------------------------
+test:pytest:
   stage: test
+  image: $PYTHON_IMAGE
+  services:
+    - name: postgres:16-alpine
+      alias: postgres
+    - name: redis:7-alpine
+      alias: redis
+    - name: elasticsearch:8.17.0
+      alias: elasticsearch
+      variables:
+        discovery.type: single-node
+        xpack.security.enabled: "false"
+        ES_JAVA_OPTS: "-Xms256m -Xmx256m"
+  variables:
+    POSTGRES_DB: sofa_test
+    POSTGRES_USER: sofa
+    POSTGRES_PASSWORD: sofa_pass
+    DATABASE_URL: postgresql+asyncpg://sofa:sofa_pass@postgres:5432/sofa_test
+    REDIS_HOST: redis
+    REDIS_PORT: "6379"
+    ELASTICSEARCH_HOST: http://elasticsearch:9200
+    SECRET_KEY: ci-test-secret-key-not-for-production
+    AWS_ACCESS_KEY_ID: test
+    AWS_SECRET_ACCESS_KEY: test
+    AWS_BUCKET_NAME: test
+    AWS_REGION: us-east-1
+  before_script:
+    - pip install --no-cache-dir poetry
+    - poetry config virtualenvs.create false
+    - poetry install --no-interaction --no-ansi
   script:
-    - docker run --rm market-backend-image pytest -s -v
+    - pytest -v tests/
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
 
-deploy-job:
-  stage: deploy
+# ---------------------------------------------------------------------------
+# Stage: build
+# ---------------------------------------------------------------------------
+build:docker:
+  stage: build
+  image: docker:27
+  services:
+    - docker:27-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   script:
-    - docker compose down --remove-orphans
-    - docker compose up -d
+    - docker build --pull -t "$IMAGE_TAG" -t "$IMAGE_LATEST" .
+    - docker push "$IMAGE_TAG"
+    - docker push "$IMAGE_LATEST"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+    - if: $CI_COMMIT_BRANCH == "main"
+
+# ---------------------------------------------------------------------------
+# Stage: deploy — dev (automatic on every push to dev)
+# ---------------------------------------------------------------------------
+deploy:dev:
+  <<: *deploy-template
+  stage: deploy
+  environment:
+    name: dev
+    url: https://dev-api.example.com
+  variables:
+    KUBE_NAMESPACE: dev
+  script:
+    - helm upgrade --install sofa-server $HELM_CHART
+        --namespace $KUBE_NAMESPACE
+        --create-namespace
+        --set image.repository=$CI_REGISTRY_IMAGE
+        --set image.tag=$CI_COMMIT_SHA
+        --set migration.run=true
+        --set migration.image.repository=$CI_REGISTRY_IMAGE
+        --set migration.image.tag=$CI_COMMIT_SHA
+        --set secret.DATABASE_URL="$DATABASE_URL"
+        --set secret.SECRET_KEY="$SECRET_KEY"
+        --set secret.AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
+        --set secret.AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
+        --set secret.AWS_BUCKET_NAME="$AWS_BUCKET_NAME"
+        --set secret.AWS_REGION="$AWS_REGION"
+        --set secret.SMS_API_KEY="$SMS_API_KEY"
+        --wait
+        --timeout 5m
+  <<: *only-dev
+
+# ---------------------------------------------------------------------------
+# Stage: deploy — staging (automatic on push to main)
+# ---------------------------------------------------------------------------
+deploy:staging:
+  <<: *deploy-template
+  stage: deploy
+  environment:
+    name: staging
+    url: https://staging-api.example.com
+  variables:
+    KUBE_NAMESPACE: staging
+  script:
+    - helm upgrade --install sofa-server $HELM_CHART
+        --namespace $KUBE_NAMESPACE
+        --create-namespace
+        --values $HELM_CHART/values-staging.yaml
+        --set image.repository=$CI_REGISTRY_IMAGE
+        --set image.tag=$CI_COMMIT_SHA
+        --set migration.run=true
+        --set migration.image.repository=$CI_REGISTRY_IMAGE
+        --set migration.image.tag=$CI_COMMIT_SHA
+        --set secret.DATABASE_URL="$DATABASE_URL"
+        --set secret.SECRET_KEY="$SECRET_KEY"
+        --set secret.AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
+        --set secret.AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
+        --set secret.AWS_BUCKET_NAME="$AWS_BUCKET_NAME"
+        --set secret.AWS_REGION="$AWS_REGION"
+        --set secret.SMS_API_KEY="$SMS_API_KEY"
+        --wait
+        --timeout 5m
+  <<: *only-staging
+
+# ---------------------------------------------------------------------------
+# Stage: deploy — production (manual gate on main)
+# ---------------------------------------------------------------------------
+deploy:production:
+  <<: *deploy-template
+  stage: deploy
+  environment:
+    name: production
+    url: https://api.example.com
+  variables:
+    KUBE_NAMESPACE: production
+  script:
+    - helm upgrade --install sofa-server $HELM_CHART
+        --namespace $KUBE_NAMESPACE
+        --create-namespace
+        --values $HELM_CHART/values-production.yaml
+        --set image.repository=$CI_REGISTRY_IMAGE
+        --set image.tag=$CI_COMMIT_SHA
+        --set migration.run=true
+        --set migration.image.repository=$CI_REGISTRY_IMAGE
+        --set migration.image.tag=$CI_COMMIT_SHA
+        --set secret.DATABASE_URL="$DATABASE_URL"
+        --set secret.SECRET_KEY="$SECRET_KEY"
+        --set secret.AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
+        --set secret.AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
+        --set secret.AWS_BUCKET_NAME="$AWS_BUCKET_NAME"
+        --set secret.AWS_REGION="$AWS_REGION"
+        --set secret.SMS_API_KEY="$SMS_API_KEY"
+        --wait
+        --timeout 10m
+  <<: *only-prod

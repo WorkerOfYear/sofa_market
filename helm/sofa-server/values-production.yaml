@@ -1,0 +1,33 @@
+replicaCount: 3
+
+image:
+  pullPolicy: IfNotPresent
+
+ingress:
+  host: api.example.com
+  tls: true
+  tlsSecretName: sofa-server-prod-tls
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    cpu: "2"
+    memory: "1Gi"
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+env:
+  DEBUG: "false"
+  LOG_LEVEL: "warning"
+  WORKERS: "4"
+  ELASTICSEARCH_HOST: "http://elasticsearch.production.svc.cluster.local:9200"
+  REDIS_HOST: "redis.production.svc.cluster.local"
+  REDIS_PORT: "6379"

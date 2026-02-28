@@ -1,17 +1,23 @@
-FROM python:3.12 AS python-base
+FROM python:3.12-slim AS builder
 
-RUN mkdir sofa_server
+WORKDIR /app
 
-WORKDIR  /sofa_server
+RUN pip install --no-cache-dir poetry==1.8.5
 
-COPY /pyproject.toml /sofa_server
+COPY pyproject.toml poetry.lock ./
 
-RUN pip3 install poetry
+RUN poetry config virtualenvs.create false \
+    && poetry install --only main --no-interaction --no-ansi
 
-RUN poetry config virtualenvs.create false
+FROM python:3.12-slim AS runtime
 
-RUN poetry install
+WORKDIR /app
 
-COPY . .
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
-CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "--bind", "0.0.0.0:8000"]
+COPY src ./src
+
+EXPOSE 8000
+
+CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "src.main:app", "--bind", "0.0.0.0:8000"]

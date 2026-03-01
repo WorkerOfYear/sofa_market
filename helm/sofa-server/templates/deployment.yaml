@@ -46,3 +46,14 @@ spec:
             {{- toYaml .Values.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.storage.enabled }}
+          volumeMounts:
+            - name: local-storage
+              mountPath: {{ .Values.storage.mountPath }}
+          {{- end }}
+      {{- if .Values.storage.enabled }}
+      volumes:
+        - name: local-storage
+          persistentVolumeClaim:
+            claimName: {{ include "sofa-server.fullname" . }}-storage
+      {{- end }}

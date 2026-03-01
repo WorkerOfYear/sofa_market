@@ -99,10 +99,7 @@ test:pytest:
     REDIS_PORT: "6379"
     ELASTICSEARCH_HOST: http://elasticsearch:9200
     SECRET_KEY: ci-test-secret-key-not-for-production
-    AWS_ACCESS_KEY_ID: test
-    AWS_SECRET_ACCESS_KEY: test
-    AWS_BUCKET_NAME: test
-    AWS_REGION: us-east-1
+    LOCAL_STORAGE_PATH: /tmp/storage
   before_script:
     - pip install --no-cache-dir poetry
     - poetry config virtualenvs.create false
@@ -155,10 +152,6 @@ deploy:dev:
         --set migration.image.tag=$CI_COMMIT_SHA
         --set secret.DATABASE_URL="$DATABASE_URL"
         --set secret.SECRET_KEY="$SECRET_KEY"
-        --set secret.AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
-        --set secret.AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
-        --set secret.AWS_BUCKET_NAME="$AWS_BUCKET_NAME"
-        --set secret.AWS_REGION="$AWS_REGION"
         --set secret.SMS_API_KEY="$SMS_API_KEY"
         --wait
         --timeout 5m
@@ -187,10 +180,6 @@ deploy:staging:
         --set migration.image.tag=$CI_COMMIT_SHA
         --set secret.DATABASE_URL="$DATABASE_URL"
         --set secret.SECRET_KEY="$SECRET_KEY"
-        --set secret.AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
-        --set secret.AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
-        --set secret.AWS_BUCKET_NAME="$AWS_BUCKET_NAME"
-        --set secret.AWS_REGION="$AWS_REGION"
         --set secret.SMS_API_KEY="$SMS_API_KEY"
         --wait
         --timeout 5m
@@ -219,10 +208,6 @@ deploy:production:
         --set migration.image.tag=$CI_COMMIT_SHA
         --set secret.DATABASE_URL="$DATABASE_URL"
         --set secret.SECRET_KEY="$SECRET_KEY"
-        --set secret.AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
-        --set secret.AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
-        --set secret.AWS_BUCKET_NAME="$AWS_BUCKET_NAME"
-        --set secret.AWS_REGION="$AWS_REGION"
         --set secret.SMS_API_KEY="$SMS_API_KEY"
         --wait
         --timeout 10m

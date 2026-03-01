@@ -33,10 +33,6 @@ Set the following variables under **Settings → CI/CD → Variables** in GitLab
 | `KUBE_CONFIG` | Base64-encoded kubeconfig file (`base64 -w0 ~/.kube/config`) | Yes |
 | `DATABASE_URL` | Full async DSN, e.g. `postgresql+asyncpg://user:pass@host/db` | Yes |
 | `SECRET_KEY` | JWT/session signing secret (generate with `openssl rand -hex 32`) | Yes |
-| `AWS_ACCESS_KEY_ID` | AWS IAM key for S3 access | Yes |
-| `AWS_SECRET_ACCESS_KEY` | AWS IAM secret | Yes |
-| `AWS_BUCKET_NAME` | S3 bucket name for file storage | No |
-| `AWS_REGION` | AWS region, e.g. `us-east-1` | No |
 | `SMS_API_KEY` | Mobizon API key for SMS | Yes |
 
 ### Per-environment overrides
@@ -212,3 +208,29 @@ Replace placeholder hostnames in the values files with real ones:
 
 Also replace `registry.gitlab.com/your-group/sofa_server` in `values.yaml`
 with the actual GitLab Container Registry path for the project.
+
+---
+
+## 7. Local File Storage
+
+The application stores uploaded files on the local filesystem via
+`LocalStorageClient`. In Kubernetes, a **PersistentVolumeClaim** is created
+automatically by the Helm chart so files survive pod restarts and redeployments.
+
+Key values:
+
+```yaml
+storage:
+  enabled: true
+  size: 5Gi                  # adjust to your needs
+  storageClassName: standard # use the storage class available in your cluster
+  mountPath: /app/storage    # must match LOCAL_STORAGE_PATH in env
+```
+
+The `env.LOCAL_STORAGE_PATH` ConfigMap value (`/app/storage`) is passed to the
+app and must match `storage.mountPath`. If you change one, change the other.
+
+> Note: `ReadWriteOnce` access mode means only one node can write at a time.
+> This is fine for a single-replica or single-node setup. If you scale to
+> multiple replicas across different nodes and need concurrent writes, switch
+> to a `ReadWriteMany` storage class (e.g. NFS or a cloud-native RWX class).

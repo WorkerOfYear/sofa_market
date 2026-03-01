@@ -40,6 +40,7 @@ env:
   DEBUG: "false"
   LOG_LEVEL: "info"
   WORKERS: "4"
+  LOCAL_STORAGE_PATH: /app/storage
   # Elasticsearch
   ELASTICSEARCH_HOST: "http://elasticsearch:9200"
   # Redis
@@ -51,11 +52,14 @@ secret:
   # In CI, set these as masked GitLab variables and pass with --set secret.*
   DATABASE_URL: ""
   SECRET_KEY: ""
-  AWS_ACCESS_KEY_ID: ""
-  AWS_SECRET_ACCESS_KEY: ""
-  AWS_BUCKET_NAME: ""
-  AWS_REGION: ""
   SMS_API_KEY: ""
+
+storage:
+  # Persistent volume for local file storage.
+  enabled: true
+  size: 5Gi
+  storageClassName: standard
+  mountPath: /app/storage
 
 migration:
   # Set to true in the deploy job to run alembic upgrade head before rollout.
